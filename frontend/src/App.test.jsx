@@ -30,11 +30,18 @@ describe('App', () => {
     window.localStorage.clear();
   });
 
-  const registerTestAccount = async (user) => {
-    await user.type(screen.getByLabelText(/name/i), 'Test User');
-    await user.type(screen.getByLabelText(/^email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+  const registerTestAccount = async (
+    user,
+    {
+      name = 'Test User',
+      email = 'test@example.com',
+      password = 'password123',
+    } = {},
+  ) => {
+    await user.type(screen.getByLabelText(/name/i), name);
+    await user.type(screen.getByLabelText(/^email/i), email);
+    await user.type(screen.getByLabelText(/^password$/i), password);
+    await user.type(screen.getByLabelText(/confirm password/i), password);
 
     const createButton = screen.getByRole('button', { name: /create account/i });
     await user.click(createButton);
@@ -197,6 +204,124 @@ describe('App', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('shares public memos between accounts on the same book', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(['/register']);
+
+    await registerTestAccount(user, {
+      name: 'Alice Reader',
+      email: 'alice@example.com',
+      password: 'password123',
+    });
+
+    const hailMaryHeading = screen.getByRole('heading', {
+      level: 3,
+      name: /project hail mary/i,
+    });
+    const hailMaryCard = hailMaryHeading.closest('article');
+    expect(hailMaryCard).not.toBeNull();
+
+    const memoButton = within(hailMaryCard).getByRole('button', {
+      name: /\+ memo/i,
+    });
+    await user.click(memoButton);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: /project hail mary/i }),
+    ).toBeInTheDocument();
+
+    const memoField = screen.getByLabelText(/your notes/i);
+    const shareDraftToggle = screen.getByRole('switch', {
+      name: /share this memo with other readers/i,
+    });
+    await user.click(shareDraftToggle);
+    await user.type(memoField, 'Alice public memo.');
+
+    const addMemoButton = screen.getByRole('button', { name: /^add memo$/i });
+    await user.click(addMemoButton);
+
+    expect(
+      await screen.findByText(/memo added/i),
+    ).toBeInTheDocument();
+
+    const savedMemoList = await screen.findByRole('list', {
+      name: /saved memos/i,
+    });
+    const savedItems = within(savedMemoList).getAllByRole('listitem');
+    expect(savedItems).toHaveLength(1);
+    expect(
+      within(savedItems[0]).getByText(/shared with other readers/i),
+    ).toBeInTheDocument();
+    const savedShareToggle = within(savedItems[0]).getByRole('switch', {
+      name: /share with other readers/i,
+    });
+    expect(savedShareToggle).toBeChecked();
+
+    expect(
+      screen.queryByRole('list', {
+        name: /shared memos from other readers/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    const logoutButton = screen.getByRole('button', { name: /log out/i });
+    await user.click(logoutButton);
+
+    const createAccountLink = await screen.findByRole('link', {
+      name: /create one/i,
+    });
+    await user.click(createAccountLink);
+
+    await registerTestAccount(user, {
+      name: 'Bob Reader',
+      email: 'bob@example.com',
+      password: 'password123',
+    });
+
+    const hailMaryHeadingAfter = screen.getByRole('heading', {
+      level: 3,
+      name: /project hail mary/i,
+    });
+    const hailMaryCardAfter = hailMaryHeadingAfter.closest('article');
+    expect(hailMaryCardAfter).not.toBeNull();
+
+    const memoButtonAfter = within(hailMaryCardAfter).getByRole('button', {
+      name: /\+ memo/i,
+    });
+    await user.click(memoButtonAfter);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: /project hail mary/i }),
+    ).toBeInTheDocument();
+
+    const bobMemoField = screen.getByLabelText(/your notes/i);
+    await user.type(bobMemoField, 'Bob private memo.');
+    const bobAddButton = screen.getByRole('button', { name: /^add memo$/i });
+    await user.click(bobAddButton);
+
+    expect(
+      await screen.findByText(/memo added/i),
+    ).toBeInTheDocument();
+
+    const bobSavedMemoList = await screen.findByRole('list', {
+      name: /saved memos/i,
+    });
+    expect(
+      within(bobSavedMemoList).getAllByRole('listitem'),
+    ).toHaveLength(1);
+
+    const sharedMemoList = await screen.findByRole('list', {
+      name: /shared memos from other readers/i,
+    });
+    const sharedItems = within(sharedMemoList).getAllByRole('listitem');
+    expect(sharedItems).toHaveLength(1);
+    expect(
+      within(sharedItems[0]).getByText('Alice Reader'),
+    ).toBeInTheDocument();
+    expect(
+      within(sharedItems[0]).getByText('Alice public memo.'),
+    ).toBeInTheDocument();
   });
 
   it('redirects unauthenticated users to the sign-in screen', () => {

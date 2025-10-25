@@ -13,6 +13,103 @@ import SearchIcon from '@mui/icons-material/Search';
 import Button from './Button';
 import { useAuth } from '../auth/AuthContext';
 import { loadUserLibrary, saveUserLibrary } from '../library/libraryStorage';
+import {
+  loadPublicMemoStore,
+  normalizePublicMemoStore,
+  savePublicMemoStore,
+} from '../library/publicMemoStorage';
+
+const arePublicMemoListsEqual = (a = [], b = []) => {
+  if (a === b) {
+    return true;
+  }
+
+  if (!Array.isArray(a) || !Array.isArray(b)) {
+    return false;
+  }
+
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return a.every((entry, index) => {
+    const other = b[index];
+    if (!other) {
+      return false;
+    }
+
+    const entryAuthor = entry.author ?? {};
+    const otherAuthor = other.author ?? {};
+
+    return (
+      entry.id === other.id &&
+      entry.body === other.body &&
+      entry.createdAt === other.createdAt &&
+      entry.sharedAt === other.sharedAt &&
+      (entryAuthor.id ?? null) === (otherAuthor.id ?? null) &&
+      (entryAuthor.name ?? '') === (otherAuthor.name ?? '')
+    );
+  });
+};
+
+const arePublicStoresEqual = (a = {}, b = {}) => {
+  if (a === b) {
+    return true;
+  }
+
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+
+  if (aKeys.length !== bKeys.length) {
+    return false;
+  }
+
+  return aKeys.every((key) => {
+    if (!Object.prototype.hasOwnProperty.call(b, key)) {
+      return false;
+    }
+
+    return arePublicMemoListsEqual(a[key], b[key]);
+  });
+};
+
+const createPublicMemoEntry = (memo, author) => {
+  if (!memo || typeof memo !== 'object') {
+    return null;
+  }
+
+  const { id, body, createdAt } = memo;
+  if (typeof id !== 'string' || id.trim().length === 0) {
+    return null;
+  }
+
+  const trimmedBody = typeof body === 'string' ? body.trim() : '';
+  if (trimmedBody.length === 0) {
+    return null;
+  }
+
+  const memoCreatedAt =
+    typeof createdAt === 'string' && createdAt.trim().length > 0
+      ? createdAt
+      : new Date().toISOString();
+
+  const authorId =
+    author && typeof author.id === 'string' && author.id.trim().length > 0
+      ? author.id.trim()
+      : null;
+  const authorName =
+    author && typeof author.name === 'string' && author.name.trim().length > 0
+      ? author.name.trim()
+      : 'Anonymous reader';
+
+  return {
+    id: id.trim(),
+    body: trimmedBody,
+    createdAt: memoCreatedAt,
+    author: { id: authorId, name: authorName },
+    sharedAt: new Date().toISOString(),
+  };
+};
 
 const MAX_RESULTS = 12;
 
@@ -137,6 +234,9 @@ function AppShell() {
   const [searchError, setSearchError] = useState(null);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const activeRequest = useRef(null);
+  const [publicMemoStore, setPublicMemoStore] = useState(() =>
+    loadPublicMemoStore(),
+  );
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
@@ -168,6 +268,99 @@ function AppShell() {
       });
     },
     [isAuthenticated, userId],
+  );
+
+  const commitPublicMemoUpdate = useCallback((producer) => {
+    setPublicMemoStore((prevStore) => {
+      const baseStore =
+        prevStore && typeof prevStore === 'object' ? prevStore : {};
+      const nextCandidate = producer(baseStore);
+      if (nextCandidate === baseStore) {
+        return baseStore;
+      }
+
+      const normalizedNext = normalizePublicMemoStore(nextCandidate);
+      if (arePublicStoresEqual(baseStore, normalizedNext)) {
+        return baseStore;
+      }
+
+      savePublicMemoStore(normalizedNext);
+      return normalizedNext;
+    });
+  }, []);
+
+  const publishMemo = useCallback(
+    (bookId, memo, author) => {
+      if (!bookId) {
+        return;
+      }
+
+      commitPublicMemoUpdate((prevStore) => {
+        const candidateEntry = createPublicMemoEntry(memo, author);
+        if (!candidateEntry) {
+          return prevStore;
+        }
+
+        const existingList = Array.isArray(prevStore[bookId])
+          ? prevStore[bookId]
+          : [];
+        const existingEntry = existingList.find(
+          (entry) => entry.id === candidateEntry.id,
+        );
+
+        const entryToPersist = existingEntry
+          ? {
+              ...candidateEntry,
+              sharedAt: existingEntry.sharedAt ?? candidateEntry.sharedAt,
+            }
+          : candidateEntry;
+
+        const nextList = existingEntry
+          ? existingList.map((entry) =>
+              entry.id === entryToPersist.id ? entryToPersist : entry,
+            )
+          : [...existingList, entryToPersist];
+
+        return {
+          ...prevStore,
+          [bookId]: nextList,
+        };
+      });
+    },
+    [commitPublicMemoUpdate],
+  );
+
+  const unpublishMemo = useCallback(
+    (bookId, memoId) => {
+      if (!bookId || !memoId) {
+        return;
+      }
+
+      commitPublicMemoUpdate((prevStore) => {
+        const existingList = Array.isArray(prevStore[bookId])
+          ? prevStore[bookId]
+          : [];
+        if (existingList.length === 0) {
+          return prevStore;
+        }
+
+        const nextList = existingList.filter((entry) => entry.id !== memoId);
+        if (nextList.length === existingList.length) {
+          return prevStore;
+        }
+
+        if (nextList.length === 0) {
+          const { [bookId]: _, ...rest } = prevStore;
+          return rest;
+        }
+
+        return {
+          ...prevStore,
+          [bookId]: nextList,
+        };
+      });
+    },
+    [commitPublicMemoUpdate],
   );
 
   const ensureBookInLibrary = useCallback(
@@ -506,6 +699,9 @@ function AppShell() {
             library,
             ensureBookInLibrary,
             updateBookMemos,
+            publicMemos: publicMemoStore,
+            publishPublicMemo: publishMemo,
+            unpublishPublicMemo: unpublishMemo,
             search: {
               status: searchStatus,
               results: searchResults,

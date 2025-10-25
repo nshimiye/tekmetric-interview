@@ -4,15 +4,18 @@ import {
   useOutletContext,
   useParams,
 } from 'react-router-dom';
-import { styled } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
+import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import ContentContainer from '../components/layout/ContentContainer';
+import { useAuth } from '../auth/AuthContext';
 import BOOKS from '../data/books';
 
 const createMemoId = () =>
@@ -149,14 +152,22 @@ const StatusText = styled(Typography, {
 }));
 
 function BookMemoScreen() {
+  const { user } = useAuth();
   const outletContext = useOutletContext() ?? {};
   const library = outletContext.library ?? {};
   const ensureBookInLibrary = outletContext.ensureBookInLibrary ?? (() => null);
   const updateBookMemos = outletContext.updateBookMemos ?? (() => {});
+  const publicMemoStore = outletContext.publicMemos ?? {};
+  const publishPublicMemo =
+    outletContext.publishPublicMemo ?? (() => {});
+  const unpublishPublicMemo =
+    outletContext.unpublishPublicMemo ?? (() => {});
   const { bookId } = useParams();
   const [draftMemo, setDraftMemo] = useState('');
+  const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
   const memoInputRef = useRef(null);
+  const currentUserId = user?.id ?? null;
 
   const libraryEntry = library?.[bookId] ?? null;
   const catalogBook = useMemo(
@@ -164,9 +175,25 @@ function BookMemoScreen() {
     [bookId],
   );
   const selectedBook = libraryEntry?.book ?? catalogBook ?? null;
+  const selectedBookId = selectedBook?.id ?? bookId ?? null;
   const savedMemos = Array.isArray(libraryEntry?.memos)
     ? libraryEntry.memos
     : [];
+  const sharedMemos = useMemo(() => {
+    if (!selectedBookId) {
+      return [];
+    }
+
+    const entries = Array.isArray(publicMemoStore[selectedBookId])
+      ? publicMemoStore[selectedBookId]
+      : [];
+
+    return entries.filter(
+      (entry) => (entry?.author?.id ?? null) !== currentUserId,
+    );
+  }, [publicMemoStore, selectedBookId, currentUserId]);
+  const canViewSharedMemos =
+    savedMemos.length > 0 && sharedMemos.length > 0;
   const hasDraft = draftMemo.trim().length > 0;
   const authorsLabel = useMemo(() => {
     if (!selectedBook) {
@@ -188,6 +215,7 @@ function BookMemoScreen() {
   useEffect(() => {
     setDraftMemo('');
     setStatus('idle');
+    setSharePublic(false);
   }, [selectedBook?.id]);
 
   useEffect(() => {
@@ -211,6 +239,10 @@ function BookMemoScreen() {
     setStatus('editing');
   };
 
+  const handleShareDraftChange = (event) => {
+    setSharePublic(event.target.checked);
+  };
+
   const handleSaveMemo = () => {
     if (!hasDraft) {
       return;
@@ -220,12 +252,18 @@ function BookMemoScreen() {
       id: createMemoId(),
       body: draftMemo.trim(),
       createdAt: new Date().toISOString(),
+      isPublic: sharePublic,
     };
 
-    updateBookMemos(selectedBook, (existing) => [
-      ...existing,
-      memoEntry,
-    ]);
+    updateBookMemos(selectedBook, (existing) => {
+      const current = Array.isArray(existing) ? existing : [];
+      return [...current, memoEntry];
+    });
+
+    if (sharePublic && selectedBookId) {
+      publishPublicMemo(selectedBookId, memoEntry, user);
+    }
+
     setDraftMemo('');
     setStatus('saved');
   };
@@ -233,6 +271,38 @@ function BookMemoScreen() {
   const handleClearDraft = () => {
     setDraftMemo('');
     setStatus('idle');
+  };
+
+  const handleToggleMemoPublic = (memoId, nextValue) => {
+    if (!selectedBookId) {
+      return;
+    }
+
+    const target = savedMemos.find((memo) => memo.id === memoId);
+    if (!target || target.isPublic === nextValue) {
+      return;
+    }
+
+    const updatedMemo = {
+      ...target,
+      isPublic: nextValue,
+    };
+
+    updateBookMemos(selectedBook, (existing) => {
+      if (!Array.isArray(existing)) {
+        return [];
+      }
+
+      return existing.map((memo) =>
+        memo.id === memoId ? updatedMemo : memo,
+      );
+    });
+
+    if (nextValue) {
+      publishPublicMemo(selectedBookId, updatedMemo, user);
+    } else {
+      unpublishPublicMemo(selectedBookId, memoId);
+    }
   };
 
   const statusKey = STATUS_VARIANTS[status] ? status : 'idle';
@@ -289,6 +359,24 @@ function BookMemoScreen() {
                 inputRef={memoInputRef}
               />
 
+              <FormControlLabel
+                control={
+                  <Switch
+                    color="primary"
+                    checked={sharePublic}
+                    onChange={handleShareDraftChange}
+                    inputProps={{
+                      'aria-label': 'Share this memo with other readers',
+                    }}
+                  />
+                }
+                label="Share this memo with other readers"
+                componentsProps={{
+                  typography: { variant: 'body2' },
+                }}
+                sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' } }}
+              />
+
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}
@@ -321,44 +409,143 @@ function BookMemoScreen() {
                   spacing={2.5}
                   aria-label="Saved memos"
                 >
-                  {savedMemos.map((memo, index) => (
-                    <MemoListItem
-                      key={memo.id}
-                      component="li"
-                      variant="outlined"
-                    >
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.5}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'baseline' }}
+                  {savedMemos.map((memo, index) => {
+                    const isMemoPublic = memo.isPublic === true;
+
+                    return (
+                      <MemoListItem
+                        key={memo.id}
+                        component="li"
+                        variant="outlined"
                       >
-                        <Typography variant="subtitle2" fontWeight={600}>
-                          Memo {index + 1}
-                        </Typography>
-                        <Typography
-                          component="time"
-                          variant="caption"
-                          color="text.secondary"
-                          dateTime={memo.createdAt}
+                        <Stack
+                          direction={{ xs: 'column', sm: 'row' }}
+                          spacing={1.5}
+                          justifyContent="space-between"
+                          alignItems={{ xs: 'flex-start', sm: 'baseline' }}
                         >
-                          {new Date(memo.createdAt).toLocaleString()}
-                        </Typography>
-                      </Stack>
-                      <MemoBody
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        {memo.body}
-                      </MemoBody>
-                    </MemoListItem>
-                  ))}
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            Memo {index + 1}
+                          </Typography>
+                          <Typography
+                            component="time"
+                            variant="caption"
+                            color="text.secondary"
+                            dateTime={memo.createdAt}
+                          >
+                            {new Date(memo.createdAt).toLocaleString()}
+                          </Typography>
+                        </Stack>
+                        <MemoBody
+                          variant="body2"
+                          color="text.secondary"
+                        >
+                          {memo.body}
+                        </MemoBody>
+                        <Stack
+                          direction={{ xs: 'column', sm: 'row' }}
+                          spacing={1.5}
+                          alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            {isMemoPublic
+                              ? 'Shared with other readers'
+                              : 'Private memo'}
+                          </Typography>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                color="primary"
+                                checked={isMemoPublic}
+                                onChange={(event) =>
+                                  handleToggleMemoPublic(
+                                    memo.id,
+                                    event.target.checked,
+                                  )
+                                }
+                                inputProps={{
+                                  'aria-label': `Share memo ${
+                                    index + 1
+                                  } with other readers`,
+                                }}
+                              />
+                            }
+                            label="Share with other readers"
+                            componentsProps={{
+                              typography: { variant: 'body2' },
+                            }}
+                          />
+                        </Stack>
+                      </MemoListItem>
+                    );
+                  })}
                 </MemoList>
               ) : (
                 <Alert severity="info" variant="outlined">
                   Save your memos to build a running log of what caught your
                   attention in this book.
                 </Alert>
+              )}
+
+              {canViewSharedMemos && (
+                <Stack spacing={2}>
+                  <Typography variant="subtitle1" component="h4">
+                    Shared memos from other readers
+                  </Typography>
+                  <MemoList
+                    component="ul"
+                    spacing={2.5}
+                    aria-label="Shared memos from other readers"
+                  >
+                    {sharedMemos.map((memo) => {
+                      const sharedTimestamp = memo.sharedAt ?? memo.createdAt;
+                      const sharedDateObj = sharedTimestamp
+                        ? new Date(sharedTimestamp)
+                        : null;
+                      const sharedDate =
+                        sharedDateObj && !Number.isNaN(sharedDateObj.getTime())
+                          ? sharedDateObj.toLocaleString()
+                          : null;
+                      const displayName =
+                        memo.author?.name ?? 'Anonymous reader';
+
+                      return (
+                        <MemoListItem
+                          key={memo.id}
+                          component="li"
+                          variant="outlined"
+                        >
+                          <Stack
+                            direction={{ xs: 'column', sm: 'row' }}
+                            spacing={1.5}
+                            justifyContent="space-between"
+                            alignItems={{ xs: 'flex-start', sm: 'baseline' }}
+                          >
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              {displayName}
+                            </Typography>
+                            {sharedDate ? (
+                              <Typography
+                                component="time"
+                                variant="caption"
+                                color="text.secondary"
+                                dateTime={sharedTimestamp}
+                              >
+                                {sharedDate}
+                              </Typography>
+                            ) : null}
+                          </Stack>
+                          <MemoBody
+                            variant="body2"
+                            color="text.secondary"
+                          >
+                            {memo.body}
+                          </MemoBody>
+                        </MemoListItem>
+                      );
+                    })}
+                  </MemoList>
+                </Stack>
               )}
             </MemoCard>
           </Stack>
