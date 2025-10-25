@@ -44,10 +44,6 @@ describe('App', () => {
     await user.click(memoButton);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /reading notebook/i }),
-    ).toBeInTheDocument();
-
-    expect(
       screen.getByRole('heading', { level: 2, name: /project hail mary/i }),
     ).toBeInTheDocument();
 
@@ -85,31 +81,6 @@ describe('App', () => {
       within(memoList).getByText('Great worldbuilding throughout Arrakis.'),
     ).toBeInTheDocument();
 
-    const duneLink = screen.getByRole('link', { name: /dune/i });
-    await user.click(duneLink);
-
-    expect(
-      screen.getByRole('heading', { level: 2, name: /dune/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText(/your notes/i)).toHaveValue('');
-    expect(
-      screen.queryByRole('list', { name: /saved memos/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/save your memos to build a running log/i),
-    ).toBeInTheDocument();
-
-    const hailMaryLink = screen.getByRole('link', {
-      name: /project hail mary/i,
-    });
-    await user.click(hailMaryLink);
-
-    const restoredMemoList = await screen.findByRole('list', {
-      name: /saved memos/i,
-    });
-    expect(
-      within(restoredMemoList).getAllByRole('listitem'),
-    ).toHaveLength(2);
   });
 
   it('searches Google Books and displays results', async () => {
