@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import App from './App';
+import { AuthProvider } from './auth/AuthContext';
 import theme from './styles/theme';
 
 const renderWithProviders = (initialEntries = ['/']) =>
@@ -17,15 +18,34 @@ const renderWithProviders = (initialEntries = ['/']) =>
           v7_relativeSplatPath: true,
         }}
       >
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </MemoryRouter>
     </ThemeProvider>,
   );
 
 describe('App', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  const registerTestAccount = async (user) => {
+    await user.type(screen.getByLabelText(/name/i), 'Test User');
+    await user.type(screen.getByLabelText(/^email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+
+    const createButton = screen.getByRole('button', { name: /create account/i });
+    await user.click(createButton);
+
+    await screen.findByRole('heading', { level: 2, name: /suggested books/i });
+  };
+
   it('follows the suggested books flow to add memos', async () => {
     const user = userEvent.setup();
-    renderWithProviders(['/']);
+    renderWithProviders(['/register']);
+    await registerTestAccount(user);
 
     expect(
       screen.getByRole('heading', { level: 2, name: /suggested books/i }),
@@ -83,7 +103,7 @@ describe('App', () => {
 
   });
 
-  it('searches Google Books and displays results', async () => {
+  it('searches Google Books and saves a memo from results', async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -109,7 +129,8 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     try {
-      renderWithProviders(['/']);
+      renderWithProviders(['/register']);
+      await registerTestAccount(user);
 
       const searchField = screen.getByRole('searchbox', { name: /search books/i });
       await user.type(searchField, 'Dune');
@@ -125,21 +146,66 @@ describe('App', () => {
       expect(
         await screen.findByRole('heading', { level: 2, name: /results for "dune"/i }),
       ).toBeInTheDocument();
-      expect(
-        await screen.findByRole('heading', { level: 3, name: /dune/i }),
-      ).toBeInTheDocument();
+      const resultHeading = await screen.findByRole('heading', {
+        level: 3,
+        name: /dune/i,
+      });
       expect(
         screen.getByText(/view on google books/i),
       ).toHaveAttribute('href', 'https://books.google.com/dune');
 
-      const clearButton = screen.getByRole('button', { name: /clear search/i });
-      await user.click(clearButton);
+      const resultCard = resultHeading.closest('article');
+      expect(resultCard).not.toBeNull();
+
+      const addMemoFromSearch = within(resultCard).getByRole('button', {
+        name: /add memo/i,
+      });
+      await user.click(addMemoFromSearch);
 
       expect(
-        await screen.findByRole('heading', { level: 2, name: /suggested books/i }),
+        await screen.findByRole('heading', { level: 2, name: /dune/i }),
+      ).toBeInTheDocument();
+
+      const memoField = screen.getByLabelText(/your notes/i);
+      await user.type(memoField, 'Thinking about spice.');
+      const addMemoButton = screen.getByRole('button', { name: /^add memo$/i });
+      await user.click(addMemoButton);
+
+      expect(
+        await screen.findByText(/memo added/i),
+      ).toBeInTheDocument();
+
+      const homeLink = screen.getByRole('link', { name: /book memo/i });
+      await user.click(homeLink);
+
+      const bookshelfList = await screen.findByRole('list', {
+        name: /your saved books/i,
+      });
+      const shelfItems = within(bookshelfList).getAllByRole('listitem');
+      const shelfCard = shelfItems.find((item) => {
+        const heading = within(item).queryByRole('heading', {
+          level: 3,
+          name: /dune/i,
+        });
+        return Boolean(heading);
+      });
+
+      expect(shelfCard, 'Expected to find a bookshelf card for Dune').toBeDefined();
+      expect(
+        within(shelfCard).getByText(/1 memo/i),
       ).toBeInTheDocument();
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('redirects unauthenticated users to the sign-in screen', () => {
+    renderWithProviders(['/']);
+    expect(
+      screen.getByRole('heading', { level: 1, name: /welcome back/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /sign in/i }),
+    ).toBeInTheDocument();
   });
 });

@@ -166,6 +166,9 @@ function SearchResultsPanel({
   error = null,
   lastQuery = '',
   onClear,
+  onAddMemo,
+  onAddToShelf,
+  savedBookIds,
 }) {
   const safeResults = Array.isArray(results) ? results : [];
   const carouselTrackRef = useRef(null);
@@ -370,88 +373,106 @@ function SearchResultsPanel({
               onScroll={updateCarouselState}
               aria-label="Books that match your search"
             >
-              {safeResults.map((result) => (
-                <CarouselItem
-                  key={result.id}
-                >
-                  <ResultCard
-                    component="article"
-                    variant="outlined"
+              {safeResults.map((result) => {
+                const isSaved =
+                  savedBookIds instanceof Set && savedBookIds.has(result.id);
+
+                return (
+                  <CarouselItem
+                    key={result.id}
                   >
-                    <ResultCover>
-                      {result.thumbnail ? (
-                        <ResultThumbnailImage
-                          src={result.thumbnail}
-                          alt={`Cover of ${result.title}`}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <NoCoverText
-                          variant="caption"
-                          component="span"
+                    <ResultCard
+                      component="article"
+                      variant="outlined"
+                    >
+                      <ResultCover>
+                        {result.thumbnail ? (
+                          <ResultThumbnailImage
+                            src={result.thumbnail}
+                            alt={`Cover of ${result.title}`}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <NoCoverText
+                            variant="caption"
+                            component="span"
+                            color="text.secondary"
+                          >
+                            No cover available
+                          </NoCoverText>
+                        )}
+                      </ResultCover>
+
+                      <Box>
+                        <ResultTitle variant="h6" component="h3">
+                          {result.title}
+                        </ResultTitle>
+                        {Array.isArray(result.authors) && result.authors.length > 0 && (
+                          <Typography variant="body2" color="text.secondary">
+                            by {result.authors.join(', ')}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      {result.description && (
+                        <ResultDescription
+                          variant="body2"
                           color="text.secondary"
                         >
-                          No cover available
-                        </NoCoverText>
+                          {result.description}
+                        </ResultDescription>
                       )}
-                    </ResultCover>
 
-                    <Box>
-                      <ResultTitle variant="h6" component="h3">
-                        {result.title}
-                      </ResultTitle>
-                      {Array.isArray(result.authors) && result.authors.length > 0 && (
-                        <Typography variant="body2" color="text.secondary">
-                          by {result.authors.join(', ')}
+                      <ResultMeta>
+                        <Typography variant="caption" color="text.secondary">
+                          {result.publishedDate
+                            ? `Published ${result.publishedDate}`
+                            : 'Publication date unknown'}
                         </Typography>
-                      )}
-                    </Box>
 
-                    {result.description && (
-                      <ResultDescription
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        {result.description}
-                      </ResultDescription>
-                    )}
-
-                    <ResultMeta>
-                      <Typography variant="caption" color="text.secondary">
-                        {result.publishedDate
-                          ? `Published ${result.publishedDate}`
-                          : 'Publication date unknown'}
-                      </Typography>
-
-                      <ResultActionsRow
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1}
-                      >
-                        <ResultActionButton type="button">
-                          Add memo
-                        </ResultActionButton>
-                        <ResultActionButton
-                          type="button"
-                          variant="secondary"
+                        <ResultActionsRow
+                          direction={{ xs: 'column', sm: 'row' }}
+                          spacing={1}
                         >
-                          Add to Shelf
-                        </ResultActionButton>
-                      </ResultActionsRow>
+                          <ResultActionButton
+                            type="button"
+                            onClick={() => {
+                              if (typeof onAddMemo === 'function') {
+                                onAddMemo(result);
+                              }
+                            }}
+                          >
+                            Add memo
+                          </ResultActionButton>
+                          <ResultActionButton
+                            type="button"
+                            variant="secondary"
+                            disabled={isSaved}
+                            onClick={() => {
+                              if (!isSaved && typeof onAddToShelf === 'function') {
+                                onAddToShelf(result);
+                              }
+                            }}
+                          >
+                            {isSaved ? 'In shelf' : 'Add to Shelf'}
+                          </ResultActionButton>
+                        </ResultActionsRow>
 
-                      {result.infoLink && (
-                        <Link
-                          href={result.infoLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          color="info.main"
-                        >
-                          View on Google Books
-                        </Link>
-                      )}
-                    </ResultMeta>
-                  </ResultCard>
-                </CarouselItem>
-              ))}
+                        {result.infoLink && (
+                          <Link
+                            href={result.infoLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            color="info.main"
+                          >
+                            View on Google Books
+                          </Link>
+                        )}
+                      </ResultMeta>
+                    </ResultCard>
+                  </CarouselItem>
+                );
+              })}
             </CarouselTrack>
 
             <CarouselNavButton

@@ -75,14 +75,28 @@ const BookSidebar = styled(Stack)(({ theme }) => ({
   },
 }));
 
-const BookCover = styled(Box)(({ theme }) => ({
+const BookCover = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'hasImage',
+})(({ theme, hasImage }) => ({
   width: '100%',
   aspectRatio: '3 / 4',
   borderRadius: theme.shape.borderRadius * 3,
-  background: theme.custom.gradients.hero(),
+  background: hasImage
+    ? theme.palette.background.paper
+    : theme.custom.gradients.hero(),
   border: `1px solid ${theme.custom.designTokens.borderMuted}`,
   boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 }));
+
+const BookCoverImage = styled('img')({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+});
 
 const MemoCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -135,18 +149,41 @@ const StatusText = styled(Typography, {
 }));
 
 function BookMemoScreen() {
-  const { memos, setMemos } = useOutletContext();
+  const outletContext = useOutletContext() ?? {};
+  const library = outletContext.library ?? {};
+  const ensureBookInLibrary = outletContext.ensureBookInLibrary ?? (() => null);
+  const updateBookMemos = outletContext.updateBookMemos ?? (() => {});
   const { bookId } = useParams();
   const [draftMemo, setDraftMemo] = useState('');
   const [status, setStatus] = useState('idle');
   const memoInputRef = useRef(null);
 
-  const selectedBook = useMemo(
+  const libraryEntry = library?.[bookId] ?? null;
+  const catalogBook = useMemo(
     () => BOOKS.find((book) => book.id === bookId) ?? null,
     [bookId],
   );
-  const savedMemos = selectedBook ? memos[selectedBook.id] ?? [] : [];
+  const selectedBook = libraryEntry?.book ?? catalogBook ?? null;
+  const savedMemos = Array.isArray(libraryEntry?.memos)
+    ? libraryEntry.memos
+    : [];
   const hasDraft = draftMemo.trim().length > 0;
+  const authorsLabel = useMemo(() => {
+    if (!selectedBook) {
+      return '';
+    }
+    if (Array.isArray(selectedBook.authors) && selectedBook.authors.length > 0) {
+      return selectedBook.authors.join(', ');
+    }
+    if (selectedBook.author) {
+      return selectedBook.author;
+    }
+    return '';
+  }, [selectedBook]);
+  const coverImage =
+    selectedBook && typeof selectedBook.thumbnail === 'string'
+      ? selectedBook.thumbnail
+      : null;
 
   useEffect(() => {
     setDraftMemo('');
@@ -158,6 +195,12 @@ function BookMemoScreen() {
       memoInputRef.current?.focus();
     }
   }, [status]);
+
+  useEffect(() => {
+    if (selectedBook) {
+      ensureBookInLibrary(selectedBook);
+    }
+  }, [ensureBookInLibrary, selectedBook]);
 
   if (!selectedBook) {
     return <Navigate to="/" replace />;
@@ -179,13 +222,10 @@ function BookMemoScreen() {
       createdAt: new Date().toISOString(),
     };
 
-    setMemos((prev) => {
-      const existing = prev[selectedBook.id] ?? [];
-      return {
-        ...prev,
-        [selectedBook.id]: [...existing, memoEntry],
-      };
-    });
+    updateBookMemos(selectedBook, (existing) => [
+      ...existing,
+      memoEntry,
+    ]);
     setDraftMemo('');
     setStatus('saved');
   };
@@ -203,18 +243,33 @@ function BookMemoScreen() {
       <MemoSection component="section">
         <LayoutGrid>
           <BookSidebar spacing={3}>
-            <BookCover aria-hidden="true" />
+            <BookCover
+              aria-hidden={!coverImage}
+              hasImage={Boolean(coverImage)}
+            >
+              {coverImage ? (
+                <BookCoverImage
+                  src={coverImage}
+                  alt={`Cover of ${selectedBook.title}`}
+                  loading="lazy"
+                />
+              ) : null}
+            </BookCover>
             <Box>
               <Typography variant="h5" component="h2">
                 {selectedBook.title}
               </Typography>
-              <Typography variant="subtitle1" color="text.secondary">
-                by {selectedBook.author}
-              </Typography>
+              {authorsLabel && (
+                <Typography variant="subtitle1" color="text.secondary">
+                  by {authorsLabel}
+                </Typography>
+              )}
 
-              <Typography variant="body1" color="text.secondary">
-                {selectedBook.description}
-              </Typography>
+              {selectedBook.description && (
+                <Typography variant="body1" color="text.secondary">
+                  {selectedBook.description}
+                </Typography>
+              )}
             </Box>
           </BookSidebar>
 

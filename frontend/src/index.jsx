@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import './index.css';
 import App from './App';
+import { AuthProvider } from './auth/AuthContext';
 import theme from './styles/theme';
 
 createRoot(document.getElementById('root')).render(
@@ -16,7 +17,9 @@ createRoot(document.getElementById('root')).render(
           v7_relativeSplatPath: true,
         }}
       >
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,
