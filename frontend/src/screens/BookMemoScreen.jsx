@@ -1,23 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Navigate,
-  useNavigate,
-  useParams,
-} from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
-import Switch from '@mui/material/Switch';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material/styles';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import ContentContainer from '../components/layout/ContentContainer';
 import { useAuth } from '../auth/AuthContext';
 import BOOKS from '../data/books';
 
@@ -34,164 +20,31 @@ import {
   unpublishMemo,
 } from '../store/slices/publicMemosSlice';
 
-const createMemoId = () =>
-  `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+// Component imports
+import MemoEditor from './components/MemoEditor';
+import UserMemosSection from './components/UserMemosSection';
+import CommunityMemosSection from './components/CommunityMemosSection';
+import BookDetailsCard from './components/BookDetailsCard';
 
-const STATUS_VARIANTS = {
-  saved: {
-    message: 'Memo added',
-    color: (theme) => theme.palette.success.main,
-  },
-  editing: {
-    message: 'Draft in progress',
-    color: (theme) => theme.palette.warning.main,
-  },
-  idle: {
-    message: 'Start a memo',
-    color: (theme) => theme.palette.text.secondary,
-  },
-};
-
-const StyledContentContainer = styled(ContentContainer)(({ theme }) => ({
-  gap: theme.spacing(6),
-  [theme.breakpoints.up('md')]: {
-    gap: theme.spacing(8),
-  },
-}));
-
-const MemoLayout = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gap: theme.spacing(4),
-  gridTemplateAreas: '"memos" "book"',
-  [theme.breakpoints.up('lg')]: {
-    gridTemplateColumns: 'minmax(0, 2.5fr) minmax(240px, 1fr)',
-    gridTemplateAreas: '"memos book"',
-    alignItems: 'flex-start',
-    gap: theme.spacing(6),
-  },
-  [theme.breakpoints.up('xl')]: {
-    gridTemplateColumns: 'minmax(0, 3fr) minmax(260px, 1fr)',
-  },
-}));
-
-const MemoColumn = styled(Stack)(({ theme }) => ({
-  gridArea: 'memos',
-  gap: theme.spacing(4),
-}));
-
-const BookColumn = styled(Stack)(({ theme }) => ({
-  gridArea: 'book',
-  gap: theme.spacing(3),
-  [theme.breakpoints.up('lg')]: {
-    position: 'sticky',
-    top: theme.spacing(4),
-    alignSelf: 'flex-start',
-  },
-}));
-
-const BookInfoCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(3.5),
-  },
-}));
-
-const BookCover = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'hasImage',
-})(({ theme, hasImage }) => ({
-  width: '100%',
-  aspectRatio: '3 / 4',
-  borderRadius: theme.shape.borderRadius * 3,
-  background: hasImage
-    ? theme.palette.background.paper
-    : theme.custom.gradients.hero(),
-  border: `1px solid ${theme.custom.designTokens.borderMuted}`,
-  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-  overflow: 'hidden',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const BookCoverImage = styled('img')({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-});
-
-const MemoCollectionCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(3),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(4),
-  },
-}));
-
-const MemoCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(3),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(4),
-  },
-  [theme.breakpoints.up('md')]: {
-    gap: theme.spacing(4),
-  },
-}));
-
-const ResponsiveButton = styled(Button)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    width: 'auto',
-  },
-}));
-
-const MemoList = styled(Stack)(() => ({
-  listStyle: 'none',
-  padding: 0,
-  margin: 0,
-}));
-
-const MemoListItem = styled(Paper)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 2,
-  padding: theme.spacing(2.5),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.5),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(3),
-  },
-}));
-
-const MemoBody = styled(Typography)(() => ({
-  whiteSpace: 'pre-line',
-  lineHeight: 1.6,
-}));
-
-const StatusText = styled(Typography, {
-  shouldForwardProp: (prop) => prop !== 'statusKey',
-})(({ theme, statusKey }) => ({
-  fontWeight: 600,
-  color:
-    (STATUS_VARIANTS[statusKey] ?? STATUS_VARIANTS.idle).color(theme),
-}));
+// Styles and utilities
+import {
+  StyledContentContainer,
+  MemoLayout,
+  MemoColumn,
+  BookColumn,
+} from './components/BookMemoScreen.styles';
+import { createMemoId } from './utils/memoUtils';
 
 function BookMemoScreen() {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { bookId } = useParams();
-  
+
   // Redux state
   const library = useSelector(selectLibrary);
   const publicMemoStore = useSelector(selectPublicMemoStore);
-  
+
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
@@ -252,23 +105,6 @@ function BookMemoScreen() {
   }, [publicMemoStore, selectedBookId, currentUserId]);
   const canViewSharedMemos =
     savedMemos.length > 0 && sharedMemos.length > 0;
-  const hasDraft = draftMemo.trim().length > 0;
-  const authorsLabel = useMemo(() => {
-    if (!selectedBook) {
-      return '';
-    }
-    if (Array.isArray(selectedBook.authors) && selectedBook.authors.length > 0) {
-      return selectedBook.authors.join(', ');
-    }
-    if (selectedBook.author) {
-      return selectedBook.author;
-    }
-    return '';
-  }, [selectedBook]);
-  const coverImage =
-    selectedBook && typeof selectedBook.thumbnail === 'string'
-      ? selectedBook.thumbnail
-      : null;
 
   useEffect(() => {
     setDraftMemo('');
@@ -297,11 +133,8 @@ function BookMemoScreen() {
     setStatus('editing');
   };
 
-  const handleShareDraftChange = (event) => {
-    setSharePublic(event.target.checked);
-  };
-
   const handleSaveMemo = () => {
+    const hasDraft = draftMemo.trim().length > 0;
     if (!hasDraft) {
       return;
     }
@@ -363,9 +196,6 @@ function BookMemoScreen() {
     }
   };
 
-  const statusKey = STATUS_VARIANTS[status] ? status : 'idle';
-  const statusMessage = (STATUS_VARIANTS[statusKey] ?? STATUS_VARIANTS.idle).message;
-
   return (
     <StyledContentContainer>
       <MemoLayout>
@@ -392,238 +222,27 @@ function BookMemoScreen() {
             </Typography>
           </Breadcrumbs>
 
-          <MemoCard elevation={0}>
+          <MemoEditor
+            draftMemo={draftMemo}
+            onMemoChange={handleMemoChange}
+            onSaveMemo={handleSaveMemo}
+            onClearDraft={handleClearDraft}
+            status={status}
+            memoInputRef={memoInputRef}
+          />
 
-            <Input
-              multiline
-              ariaLabel="Your notes"
-              name="memo"
-              placeholder="What resonated with you? Capture quotes, themes, or questions."
-              value={draftMemo}
-              onChange={handleMemoChange}
-              inputRef={memoInputRef}
-            />
-
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              alignItems={{ xs: 'stretch', sm: 'center' }}
-            >
-              <ResponsiveButton
-                onClick={handleSaveMemo}
-                disabled={!hasDraft}
-              >
-                Add memo
-              </ResponsiveButton>
-              <ResponsiveButton
-                variant="secondary"
-                onClick={handleClearDraft}
-                disabled={!hasDraft}
-              >
-                Clear draft
-              </ResponsiveButton>
-              <StatusText variant="caption" statusKey={statusKey}>
-                {statusMessage}
-              </StatusText>
-            </Stack>
-          </MemoCard>
-
-          <MemoCollectionCard variant="outlined">
-            <Stack spacing={1}>
-              <Typography variant="h5" component="h3">
-              Your memos
-              </Typography>
-            </Stack>
-
-            {savedMemos.length > 0 ? (
-              <MemoList
-                component="ul"
-                spacing={2.5}
-                aria-label="Saved memos"
-              >
-                {savedMemos.map((memo, index) => {
-                  const isMemoPublic = memo.isPublic === true;
-
-                  return (
-                    <MemoListItem
-                      key={memo.id}
-                      component="li"
-                      variant="outlined"
-                    >
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.5}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'baseline' }}
-                      >
-                        <Typography variant="subtitle2" fontWeight={600}>
-                        {memo.body}
-                        </Typography>
-                        <Typography
-                          component="time"
-                          variant="caption"
-                          color="text.secondary"
-                          dateTime={memo.createdAt}
-                        >
-                          {new Date(memo.createdAt).toLocaleString()}
-                        </Typography>
-                      </Stack>
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.5}
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          {isMemoPublic
-                            ? 'Shared with other readers'
-                            : 'Private memo'}
-                        </Typography>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              color="primary"
-                              checked={isMemoPublic}
-                              onChange={(event) =>
-                                handleToggleMemoPublic(
-                                  memo.id,
-                                  event.target.checked,
-                                )
-                              }
-                              inputProps={{
-                                'aria-label': `Share memo ${
-                                  index + 1
-                                } with other readers`,
-                              }}
-                            />
-                          }
-                          label="Share with other readers"
-                          componentsProps={{
-                            typography: { variant: 'body2' },
-                          }}
-                        />
-                      </Stack>
-                    </MemoListItem>
-                  );
-                })}
-              </MemoList>
-            ) : (
-              <Alert severity="info" variant="outlined">
-                Save your memos to build a running log of what caught your
-                attention in this book.
-              </Alert>
-            )}
-          </MemoCollectionCard>
+          <UserMemosSection
+            memos={savedMemos}
+            onToggleMemoPublic={handleToggleMemoPublic}
+          />
 
           {canViewSharedMemos && (
-            <MemoCollectionCard variant="outlined">
-              <Stack spacing={1}>
-                <Typography variant="h5" component="h3">
-                Community
-                </Typography>
-              </Stack>
-              <MemoList
-                component="ul"
-                spacing={2.5}
-                aria-label="Shared memos from other readers"
-              >
-                {sharedMemos.map((memo) => {
-                  const sharedTimestamp = memo.sharedAt ?? memo.createdAt;
-                  const sharedDateObj = sharedTimestamp
-                    ? new Date(sharedTimestamp)
-                    : null;
-                  const sharedDate =
-                    sharedDateObj && !Number.isNaN(sharedDateObj.getTime())
-                      ? sharedDateObj.toLocaleString()
-                      : null;
-                  const displayName =
-                    memo.author?.name ?? 'Anonymous reader';
-
-                  return (
-                    <MemoListItem
-                      key={memo.id}
-                      component="li"
-                      variant="outlined"
-                    >
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.5}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'baseline' }}
-                      >
-                        <Typography variant="subtitle2" fontWeight={600}>
-                          {memo.body}
-                        </Typography>
-                        {sharedDate ? (
-                          <Typography
-                            component="time"
-                            variant="caption"
-                            color="text.secondary"
-                            dateTime={sharedTimestamp}
-                          >
-                            {sharedDate}
-                          </Typography>
-                        ) : null}
-                      </Stack>
-                      <MemoBody
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        By {displayName}
-                      </MemoBody>
-                    </MemoListItem>
-                  );
-                })}
-              </MemoList>
-            </MemoCollectionCard>
+            <CommunityMemosSection memos={sharedMemos} />
           )}
         </MemoColumn>
 
         <BookColumn>
-          <BookInfoCard variant="outlined">
-            <Typography variant="overline" color="text.secondary">
-              Book details
-            </Typography>
-            <BookCover
-              aria-hidden={!coverImage}
-              hasImage={Boolean(coverImage)}
-            >
-              {coverImage ? (
-                <BookCoverImage
-                  src={coverImage}
-                  alt={`Cover of ${selectedBook.title}`}
-                  loading="lazy"
-                />
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Cover unavailable
-                </Typography>
-              )}
-            </BookCover>
-            <Stack spacing={0.5}>
-              <Typography variant="h6" component="h2">
-                {selectedBook.title}
-              </Typography>
-              {authorsLabel && (
-                <Typography variant="body2" color="text.secondary">
-                  by {authorsLabel}
-                </Typography>
-              )}
-            </Stack>
-            {selectedBook.description && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 5,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {selectedBook.description}
-              </Typography>
-            )}
-          </BookInfoCard>
+          <BookDetailsCard book={selectedBook} />
         </BookColumn>
       </MemoLayout>
     </StyledContentContainer>
