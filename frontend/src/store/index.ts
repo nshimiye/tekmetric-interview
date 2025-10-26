@@ -5,8 +5,11 @@ import publicMemosReducer from './slices/publicMemosSlice';
 
 export const store = configureStore({
   reducer: {
+    // Stores the user's book library and their memos for each book
     library: libraryReducer,
+    // Handles book search state, cached results, and queries
     search: searchReducer,
+    // Manages shared/public memos from all users
     publicMemos: publicMemosReducer,
   },
   middleware: (getDefaultMiddleware) =>

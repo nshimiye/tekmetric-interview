@@ -8,7 +8,7 @@ memo is something you remember about a given book
 - View a list of books that have your memo (grid/table)
 
 ## Non-Functional requirements
-- Intl support
+- Intl support (DONE)
 - Caching search queries (DONE)
 - The web application should be responsive, look well on desktop and mobile
 - Lazy loading components that rarely used

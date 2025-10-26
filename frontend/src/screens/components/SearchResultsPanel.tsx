@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector, useDispatch } from 'react-redux';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import IconButton from '@mui/material/IconButton';
@@ -9,7 +10,18 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '../../components/Button';
 import ResultCard from './ResultCard';
-import { BookSearchResult } from '../../store/slices/searchSlice';
+import {
+  BookSearchResult,
+  selectSearchStatus,
+  selectSearchResults,
+  selectSearchError,
+  selectLastSearchQuery,
+  selectLastResultFromCache,
+  clearSearch,
+  clearSearchCache,
+  searchBooks,
+} from '../../store/slices/searchSlice';
+import { AppDispatch } from '../../store';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius * 3,
@@ -110,36 +122,26 @@ const CarouselItem = styled('li')(({ theme }) => ({
   },
 }));
 
-type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
-
 interface SearchResultsPanelProps {
-  status?: SearchStatus;
-  results?: BookSearchResult[];
-  error?: string | null;
-  lastQuery?: string;
-  cacheSize?: number;
-  lastResultFromCache?: boolean;
-  onClear: () => void;
-  onClearCache: () => void;
   onAddMemo: (book: BookSearchResult) => void;
   onAddToShelf: (book: BookSearchResult) => void;
   savedBookIds: Set<string>;
 }
 
 function SearchResultsPanel({
-  status = 'idle',
-  results = [],
-  error = null,
-  lastQuery = '',
-  cacheSize = 0,
-  lastResultFromCache = false,
-  onClear,
-  onClearCache,
   onAddMemo,
   onAddToShelf,
   savedBookIds,
 }: SearchResultsPanelProps) {
   const { t } = useTranslation();
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // Get search state from Redux
+  const status = useSelector(selectSearchStatus);
+  const results = useSelector(selectSearchResults);
+  const error = useSelector(selectSearchError);
+  const lastQuery = useSelector(selectLastSearchQuery);
+  const lastResultFromCache = useSelector(selectLastResultFromCache);
   const safeResults = Array.isArray(results) ? results : [];
   const carouselTrackRef = useRef<HTMLUListElement>(null);
   const [carouselState, setCarouselState] = useState({
@@ -263,15 +265,22 @@ function SearchResultsPanel({
   }, [status]);
 
   const handleClear = () => {
-    if (typeof onClear === 'function') {
-      onClear();
-    }
+    dispatch(clearSearch());
 
     setCarouselState((prev) =>
       prev.canScrollLeft || prev.canScrollRight
         ? { canScrollLeft: false, canScrollRight: false }
         : prev,
     );
+  };
+
+  const handleClearCache = () => {
+    // Clear the cache first
+    dispatch(clearSearchCache());
+    // Then re-run the search with the same query to get fresh results
+    if (lastQuery && lastQuery.trim().length > 0) {
+      dispatch(searchBooks(lastQuery));
+    }
   };
 
   if (status === 'idle') {
@@ -339,7 +348,7 @@ function SearchResultsPanel({
             <Button 
               type="button" 
               variant="primary" 
-              onClick={onClearCache}
+              onClick={handleClearCache}
               title={t('search.retryTitle')}
             >
               {t('search.retrySearch')}

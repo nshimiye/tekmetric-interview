@@ -5,14 +5,11 @@ import { useTranslation } from 'react-i18next';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
 import { styled, alpha } from '@mui/material/styles';
 import ContentContainer from '../components/layout/ContentContainer';
 import ShelfCard from '../components/ShelfCard';
 import SearchResultsPanel from './components/SearchResultsPanel';
-import Button from '../components/Button';
+import BookSearchForm from '../components/BookSearchForm';
 
 // Redux imports
 import {
@@ -22,14 +19,7 @@ import {
 } from '../store/slices/librarySlice';
 
 import {
-  selectSearchStatus,
-  selectSearchResults,
-  selectSearchError,
   selectLastSearchQuery,
-  selectSearchCacheSize,
-  selectLastResultFromCache,
-  clearSearch as clearSearchAction,
-  clearSearchCache as clearSearchCacheAction,
   searchBooks,
   BookSearchResult,
 } from '../store/slices/searchSlice';
@@ -83,17 +73,6 @@ const WelcomeMessage = styled(Typography)(({ theme }) => ({
   lineHeight: 1.6,
 }));
 
-const WelcomeSearchForm = styled('form')(({ theme }) => ({
-  width: '100%',
-  maxWidth: 560,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-  [theme.breakpoints.up('sm')]: {
-    flexDirection: 'row',
-  },
-}));
-
 function HomeScreen() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -104,12 +83,7 @@ function HomeScreen() {
 
   // Redux state
   const library = useSelector(selectLibrary);
-  const searchStatus = useSelector(selectSearchStatus);
-  const searchResults = useSelector(selectSearchResults);
-  const searchError = useSelector(selectSearchError);
   const lastSearchQuery = useSelector(selectLastSearchQuery);
-  const searchCacheSize = useSelector(selectSearchCacheSize);
-  const lastResultFromCache = useSelector(selectLastResultFromCache);
 
   const savedBooks = useMemo(
     () =>
@@ -130,19 +104,6 @@ function HomeScreen() {
     },
     [dispatch],
   );
-
-  const clearSearch = useCallback(() => {
-    dispatch(clearSearchAction());
-  }, [dispatch]);
-
-  const clearCache = useCallback(() => {
-    // Clear the cache first
-    dispatch(clearSearchCacheAction());
-    // Then re-run the search with the same query to get fresh results
-    if (lastSearchQuery && lastSearchQuery.trim().length > 0) {
-      dispatch(searchBooks(lastSearchQuery));
-    }
-  }, [dispatch, lastSearchQuery]);
 
   const handleNavigateToBook = (book: BookSearchResult | LibraryBook) => {
     if (!book) {
@@ -191,14 +152,6 @@ function HomeScreen() {
   return (
     <StyledContentContainer>
       <SearchResultsPanel
-        status={searchStatus}
-        results={searchResults}
-        error={searchError}
-        lastQuery={lastSearchQuery}
-        cacheSize={searchCacheSize}
-        lastResultFromCache={lastResultFromCache}
-        onClear={clearSearch}
-        onClearCache={clearCache}
         onAddMemo={handleAddMemoFromSearch}
         onAddToShelf={handleAddToShelfFromSearch}
         savedBookIds={savedBookIds}
@@ -212,34 +165,13 @@ function HomeScreen() {
           <WelcomeMessage variant="body1">
             {t('home.welcomeMessage')}
           </WelcomeMessage>
-          <WelcomeSearchForm role="search" onSubmit={handleWelcomeSearchSubmit}>
-            <TextField
-              type="search"
-              name="query"
-              size="medium"
-              placeholder={t('header.searchPlaceholder')}
-              value={welcomeSearchTerm}
-              onChange={handleWelcomeSearchChange}
-              fullWidth
-              autoComplete="off"
-              autoFocus
-              inputProps={{
-                'aria-label': t('header.searchAriaLabel'),
-                inputMode: 'search',
-                role: 'searchbox',
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon aria-hidden="true" color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button type="submit" size="medium">
-              {t('header.searchButton')}
-            </Button>
-          </WelcomeSearchForm>
+          <BookSearchForm
+            searchTerm={welcomeSearchTerm}
+            onSearchTermChange={handleWelcomeSearchChange}
+            onSubmit={handleWelcomeSearchSubmit}
+            size="medium"
+            autoFocus
+          />
         </WelcomeSection>
       )}
 

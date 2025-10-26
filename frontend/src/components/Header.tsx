@@ -7,20 +7,18 @@ import Avatar from '@mui/material/Avatar';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled, alpha } from '@mui/material/styles';
 import LogoutIcon from '@mui/icons-material/Logout';
-import SearchIcon from '@mui/icons-material/Search';
 import Button from './Button';
 import LanguageSwitcher from './LanguageSwitcher';
+import BookSearchForm from './BookSearchForm';
 
 // Redux imports
 import {
@@ -56,15 +54,9 @@ const LogoLink = styled(Typography)(({ theme }) => ({
   },
 }));
 
-const SearchForm = styled('form')(({ theme }) => ({
+const SearchFormWrapper = styled('div')(({ theme }) => ({
   width: '100%',
   maxWidth: 560,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-  [theme.breakpoints.up('sm')]: {
-    flexDirection: 'row',
-  },
   [theme.breakpoints.up('md')]: {
     marginLeft: 'auto',
   },
@@ -112,16 +104,6 @@ const UserEmail = styled(Typography)(({ theme }) => ({
 
 const AvatarContainer = styled(Box)(() => ({
   textAlign: 'center',
-}));
-
-const BreadcrumbLink = styled(Link)(({ theme }) => ({
-  textDecoration: 'none',
-  color: theme.palette.text.secondary,
-  cursor: 'pointer',
-  '&:hover': {
-    textDecoration: 'underline',
-    color: theme.palette.text.primary,
-  },
 }));
 
 const ResponsiveButtonWrapper = styled(Box)(({ theme }) => ({
@@ -252,39 +234,15 @@ function Header({
             >
               {isAuthenticated ? (
                 <>
-                  <SearchForm role="search" onSubmit={handleSearchSubmit}>
-                    <TextField
-                      id="book-search-input"
-                      type="search"
-                      name="query"
+                  <SearchFormWrapper>
+                    <BookSearchForm
+                      searchTerm={searchTerm}
+                      onSearchTermChange={handleSearchChange}
+                      onSubmit={handleSearchSubmit}
                       size="small"
-                      placeholder={t('header.searchPlaceholder')}
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      fullWidth
-                      autoComplete="off"
-                      inputProps={{
-                        'aria-label': t('header.searchAriaLabel'),
-                        inputMode: 'search',
-                        role: 'searchbox',
-                      }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon aria-hidden="true" color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
+                      inputId="book-search-input"
                     />
-
-        
-                      <Button
-                        type="submit"
-                        size="small"
-                      >
-                        {t('header.searchButton')}
-                      </Button>
-                  </SearchForm>
+                  </SearchFormWrapper>
 
                   <Stack direction="row" spacing={2} alignItems="center">
                     <LanguageSwitcher />
