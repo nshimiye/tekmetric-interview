@@ -30,6 +30,7 @@ import {
   selectSearchTerm,
   selectSearchStatus,
 } from '../store/slices/searchSlice';
+import { Box } from '@mui/material';
 
 // Styled Components
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -218,6 +219,7 @@ function Header({
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               alignItems={{ xs: 'stretch', sm: 'center' }}
+              width={{ xs: '100%', sm: 'auto' }}
               spacing={8}
             >
               {isAuthenticated ? (
@@ -255,6 +257,7 @@ function Header({
                       </Button>
                   </SearchForm>
 
+<Box sx={{ textAlign: 'center' }}>
                   <Tooltip title="Account settings">
                     <IconButton
                       onClick={handleMenuOpen}
@@ -266,7 +269,7 @@ function Header({
                       <UserAvatar>{getUserInitials()}</UserAvatar>
                     </IconButton>
                   </Tooltip>
-
+</Box>
                   <StyledMenu
                     id="account-menu"
                     anchorEl={anchorEl}

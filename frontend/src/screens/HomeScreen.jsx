@@ -6,7 +6,6 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import ContentContainer from '../components/layout/ContentContainer';
 import ShelfCard from '../components/ShelfCard';
-import BOOKS from '../data/books';
 import SearchResultsPanel from './components/SearchResultsPanel';
 
 // Redux imports
