@@ -39,7 +39,9 @@
   },
   "home": {
     "yourBookshelf": "Estantería",
-    "savedBooksAriaLabel": "Tus libros guardados"
+    "savedBooksAriaLabel": "Tus libros guardados",
+    "welcomeTitle": "¡Bienvenido a Memo de Libros!",
+    "welcomeMessage": "Parece que aún no tienes ningún memo. Busca un libro para comenzar a escribir tu primer memo."
   },
   "search": {
     "searchingFor": "Buscando {{query}}",

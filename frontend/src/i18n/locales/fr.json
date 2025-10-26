@@ -39,7 +39,9 @@
   },
   "home": {
     "yourBookshelf": "Bibliothèque",
-    "savedBooksAriaLabel": "Vos livres sauvegardés"
+    "savedBooksAriaLabel": "Vos livres sauvegardés",
+    "welcomeTitle": "Bienvenue sur Mémo Livre!",
+    "welcomeMessage": "Il semble que vous n'ayez pas encore de mémos. Recherchez un livre pour commencer à écrire votre premier mémo."
   },
   "search": {
     "searchingFor": "Recherche de {{query}}",

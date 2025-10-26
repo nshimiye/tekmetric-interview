@@ -254,6 +254,7 @@ function Header({
                 <>
                   <SearchForm role="search" onSubmit={handleSearchSubmit}>
                     <TextField
+                      id="book-search-input"
                       type="search"
                       name="query"
                       size="small"

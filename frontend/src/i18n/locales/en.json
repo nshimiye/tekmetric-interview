@@ -39,7 +39,9 @@
   },
   "home": {
     "yourBookshelf": "Bookshelf",
-    "savedBooksAriaLabel": "Your saved books"
+    "savedBooksAriaLabel": "Your saved books",
+    "welcomeTitle": "Welcome to Book Memo!",
+    "welcomeMessage": "It looks like you don't have any memos yet. Search for a book to start writing your first memo."
   },
   "search": {
     "searchingFor": "Searching for {{query}}",
