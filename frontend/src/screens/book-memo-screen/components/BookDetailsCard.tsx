@@ -7,8 +7,8 @@ import {
   BookCover,
   BookCoverImage,
 } from './BookMemoScreen.styles';
-import { Book } from '../../data/books';
-import { LibraryBook } from '../../store/slices/librarySlice';
+import { Book } from '../../../data/books';
+import { LibraryBook } from '../../../store/slices/librarySlice';
 
 const TruncatedDescription = styled(Typography)(() => ({
   display: '-webkit-box',

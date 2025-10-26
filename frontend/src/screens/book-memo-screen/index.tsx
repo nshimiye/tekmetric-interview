@@ -1,9 +1,9 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
-import MemoEditor from '../components/MemoEditor';
-import UserMemosSection from '../components/UserMemosSection';
-import CommunityMemosSection from '../components/CommunityMemosSection';
-import BookDetailsCard from '../components/BookDetailsCard';
+import MemoEditor from './components/MemoEditor';
+import UserMemosSection from './components/UserMemosSection';
+import CommunityMemosSection from './components/CommunityMemosSection';
+import BookDetailsCard from './components/BookDetailsCard';
 import { useBookMemoScreen } from './hooks';
 import {
   StyledContentContainer,

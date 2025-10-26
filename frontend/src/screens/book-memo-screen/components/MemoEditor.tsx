@@ -1,6 +1,6 @@
 import { ChangeEvent } from 'react';
 import Stack from '@mui/material/Stack';
-import Input from '../../components/Input';
+import Input from '../../../components/Input';
 import { MemoCard, ResponsiveButton, StatusText } from './BookMemoScreen.styles';
 import { STATUS_VARIANTS, StatusKey } from '../utils/memoUtils';
 

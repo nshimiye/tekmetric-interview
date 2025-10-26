@@ -1,65 +1,28 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import ContentContainer from '../components/layout/ContentContainer';
-import { useAuth } from '../auth/AuthContext';
-import { FormPaper } from '../components/FormPaper';
-
-
-interface LoginFormState {
-  email: string;
-  password: string;
-}
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import ContentContainer from '../../components/layout/ContentContainer';
+import { FormPaper } from '../../components/FormPaper';
+import { useLoginScreen } from './hooks';
 
 function LoginScreen() {
   const { t } = useTranslation();
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const redirectTo = location.state?.from?.pathname ?? '/';
-
-  const [formState, setFormState] = useState<LoginFormState>({
-    email: '',
-    password: '',
-  });
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage('');
-
-    try {
-      await login(formState);
-      navigate(redirectTo, { replace: true });
-    } catch (error) {
-      const message = error && typeof error === 'object' && 'message' in error 
-        ? String(error.message) 
-        : t('login.errorDefault');
-      setErrorMessage(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    formState,
+    errorMessage,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+  } = useLoginScreen();
 
   return (
     <ContentContainer component="section" gap={6}>
-      <FormPaper
-        component="form"
-        onSubmit={handleSubmit}
-      >
+      <FormPaper component="form" onSubmit={handleSubmit}>
         <Stack spacing={1}>
           <Typography variant="h4" component="h1">
             {t('login.title')}

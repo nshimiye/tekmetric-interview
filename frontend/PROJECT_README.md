@@ -28,22 +28,30 @@ memo is something you remember about a given book
 - yarn for package management
 - localStorage is used to mock backend (stores and shore memos)
 
-## Folder structure
-
+## Folder structure 
+Goal is to make sure each file has at most 100 lines (to help future developer understand the code)
 screens/
-  ├── book-memo-screen/
-  │   ├── index.tsx       (main component)
+  ├── {screen-1}/
+  │   ├── index.tsx       (main component - 84 lines)
   │   ├── hooks.ts        (custom hooks for state & logic)
-  │   └── styles.ts       (styled components)
+  │   ├── styles.ts       (styled components)
+  │   └── components/     (sub-components)
+  └── {screen-2}/
+      ├── index.tsx       (main component)
+      ├── hooks.ts        (custom hooks for state & logic)
+      ├── styles.ts       (styled components)
+      └── components/     (sub-components)
+
 components/
-  ├── header/
+  ├── {complex-component}/
   │   ├── index.tsx       (main component)
   │   ├── hooks.ts        (custom hooks for business logic)
   │   ├── styles.ts       (styled components)
-  │   └── UserMenu.tsx    (sub-component)
-  ├── shelf-card/
-  │   ├── index.tsx
-  │   └── styles.ts
+  │   └── {helper}.tsx    (sub-component)
+  ├── {base-component}.tsx
+  └── {simple-component}/
+      ├── index.tsx
+      └── styles.ts
 
 
 ### Architecture Guidelines

@@ -1,77 +1,28 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import ContentContainer from '../components/layout/ContentContainer';
-import { useAuth } from '../auth/AuthContext';
-import { FormPaper } from '../components/FormPaper';
-
-
-interface RegisterFormState {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import ContentContainer from '../../components/layout/ContentContainer';
+import { FormPaper } from '../../components/FormPaper';
+import { useRegisterScreen } from './hooks';
 
 function RegisterScreen() {
   const { t } = useTranslation();
-  const { register } = useAuth();
-  const navigate = useNavigate();
-
-  const [formState, setFormState] = useState<RegisterFormState>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (formState.password.trim() !== formState.confirmPassword.trim()) {
-      setErrorMessage(t('register.passwordMismatch'));
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage('');
-
-    try {
-      await register({
-        name: formState.name,
-        email: formState.email,
-        password: formState.password,
-      });
-      navigate('/', { replace: true });
-    } catch (error) {
-      const message = error && typeof error === 'object' && 'message' in error 
-        ? String(error.message) 
-        : t('register.errorDefault');
-      setErrorMessage(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    formState,
+    errorMessage,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+  } = useRegisterScreen();
 
   return (
     <ContentContainer component="section" gap={6}>
-      <FormPaper
-        component="form"
-        onSubmit={handleSubmit}
-      >
+      <FormPaper component="form" onSubmit={handleSubmit}>
         <Stack spacing={1}>
           <Typography variant="h4" component="h1">
             {t('register.title')}

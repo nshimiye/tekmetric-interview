@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useAuth } from '../../auth/AuthContext';
+import { PublicUser, useAuth } from '../../auth/AuthContext';
 import BOOKS, { Book } from '../../data/books';
 import {
   selectLibrary,
@@ -16,7 +16,7 @@ import {
 } from '../../store/slices/publicMemosSlice';
 import { AppDispatch } from '../../store';
 import { Memo } from '../../library/libraryStorage';
-import { createMemoId } from '../utils/memoUtils';
+import { createMemoId } from './utils/memoUtils';
 
 export interface UserMemo extends Memo {
   isPublic?: boolean;
@@ -35,7 +35,10 @@ export function useBookMemoScreen(bookId: string | undefined) {
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
   const memoInputRef = useRef<HTMLTextAreaElement>(null);
-  const currentUserId = user?.id ?? null;
+  if (!user) {
+    throw new Error('User must be logged in to access BookMemoScreen');
+  }
+  const currentUserId = user.id;
 
   // Redux action dispatchers
   const ensureBookInLibrary = useCallback(
@@ -60,7 +63,7 @@ export function useBookMemoScreen(bookId: string | undefined) {
   );
 
   const publishPublicMemo = useCallback(
-    (bookIdParam: string, memo: UserMemo, author: typeof user) => {
+    (bookIdParam: string, memo: UserMemo, author: PublicUser) => {
       dispatch(publishMemo({ bookId: bookIdParam, memo, author }));
     },
     [dispatch],
