@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -80,18 +81,20 @@ interface ResultCardProps {
 }
 
 function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProps) {
+  const { t } = useTranslation();
+
   return (
     <StyledResultCard component="article" variant="outlined">
       <ResultCover>
         {result.thumbnail ? (
           <ResultThumbnailImage
             src={result.thumbnail}
-            alt={`Cover of ${result.title}`}
+            alt={t('book.coverAlt', { title: result.title })}
             loading="lazy"
           />
         ) : (
           <NoCoverText variant="caption" component="span" color="text.secondary">
-            No cover available
+            {t('book.noCover')}
           </NoCoverText>
         )}
       </ResultCover>
@@ -102,7 +105,7 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
         </ResultTitle>
         {Array.isArray(result.authors) && result.authors.length > 0 && (
           <Typography variant="body2" color="text.secondary">
-            by {result.authors.join(', ')}
+            {t('book.by')} {result.authors.join(', ')}
           </Typography>
         )}
       </Box>
@@ -116,8 +119,8 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
       <ResultMeta>
         <Typography variant="caption" color="text.secondary">
           {result.publishedDate
-            ? `Published ${result.publishedDate}`
-            : 'Publication date unknown'}
+            ? t('book.published', { date: result.publishedDate })
+            : t('book.publicationUnknown')}
         </Typography>
 
         <ResultActionsRow direction={{ xs: 'column', sm: 'row' }} spacing={1}>
@@ -129,7 +132,7 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
               }
             }}
           >
-            Add memo
+            {t('book.addMemo')}
           </ResultActionButton>
           <ResultActionButton
             type="button"
@@ -141,7 +144,7 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
               }
             }}
           >
-            {isSaved ? 'In shelf' : 'Add to Shelf'}
+            {isSaved ? t('book.inShelf') : t('book.addToShelf')}
           </ResultActionButton>
         </ResultActionsRow>
 

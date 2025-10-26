@@ -1,5 +1,6 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
@@ -19,6 +20,7 @@ interface RegisterFormState {
 }
 
 function RegisterScreen() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -40,7 +42,7 @@ function RegisterScreen() {
     event.preventDefault();
 
     if (formState.password.trim() !== formState.confirmPassword.trim()) {
-      setErrorMessage('Passwords do not match.');
+      setErrorMessage(t('register.passwordMismatch'));
       return;
     }
 
@@ -57,7 +59,7 @@ function RegisterScreen() {
     } catch (error) {
       const message = error && typeof error === 'object' && 'message' in error 
         ? String(error.message) 
-        : 'Unable to register at the moment.';
+        : t('register.errorDefault');
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -72,10 +74,10 @@ function RegisterScreen() {
       >
         <Stack spacing={1}>
           <Typography variant="h4" component="h1">
-            Create an account
+            {t('register.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Save your memos and revisit them any time you like.
+            {t('register.subtitle')}
           </Typography>
         </Stack>
 
@@ -87,7 +89,7 @@ function RegisterScreen() {
 
         <Stack spacing={2.5}>
           <Input
-            label="Name"
+            label={t('register.name')}
             name="name"
             autoComplete="name"
             value={formState.name}
@@ -95,7 +97,7 @@ function RegisterScreen() {
           />
 
           <Input
-            label="Email"
+            label={t('register.email')}
             name="email"
             type="email"
             autoComplete="email"
@@ -104,7 +106,7 @@ function RegisterScreen() {
           />
 
           <Input
-            label="Password"
+            label={t('register.password')}
             name="password"
             type="password"
             autoComplete="new-password"
@@ -113,7 +115,7 @@ function RegisterScreen() {
           />
 
           <Input
-            label="Confirm password"
+            label={t('register.confirmPassword')}
             name="confirmPassword"
             type="password"
             autoComplete="new-password"
@@ -124,13 +126,13 @@ function RegisterScreen() {
 
         <Stack spacing={2.5}>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account…' : 'Create account'}
+            {isSubmitting ? t('register.creatingAccount') : t('register.createAccount')}
           </Button>
 
           <Typography variant="body2" color="text.secondary">
-            Already registered?{' '}
+            {t('register.alreadyRegistered')}{' '}
             <Link component={RouterLink} to="/login">
-              Sign in
+              {t('register.signIn')}
             </Link>
           </Typography>
         </Stack>

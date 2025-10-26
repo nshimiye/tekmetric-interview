@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -103,6 +104,7 @@ interface ShelfCardProps {
 }
 
 function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
+  const { t } = useTranslation();
   const snippet = getLatestMemoSnippet(memos);
   const authorsText =
     Array.isArray(book.authors) && book.authors.length > 0
@@ -115,7 +117,7 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
       component="article"
       role="listitem"
       backgroundImage={book.thumbnail}
-      aria-label={`${book.title}${authorsText ? ` by ${authorsText}` : ''}`}
+      aria-label={`${book.title}${authorsText ? ` ${t('book.by')} ${authorsText}` : ''}`}
     >
       <ShelfCardContent>
         <OneLineText
@@ -128,7 +130,7 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
         {authorsText && (
           <OneLineText variant="body2"
           >
-            by {authorsText}
+            {t('book.by')} {authorsText}
           </OneLineText>
         )}
 
@@ -139,13 +141,13 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
         )}
 
         <Typography variant="caption">
-          {memoCount} memo{memoCount === 1 ? '' : 's'}
+          {t('book.memoCount', { count: memoCount })}
         </Typography>
       </ShelfCardContent>
 
       <StyledCardActions>
         <FullWidthButton onClick={() => onViewMemos(book)}>
-          View memos
+          {t('book.viewMemos')}
         </FullWidthButton>
       </StyledCardActions>
     </StyledShelfCard>

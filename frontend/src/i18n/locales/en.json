@@ -1,0 +1,78 @@
+{
+  "app": {
+    "title": "Book Memo"
+  },
+  "header": {
+    "logo": "Book Memo",
+    "searchPlaceholder": "Search books by title, author, or ISBN...",
+    "searchAriaLabel": "Search books",
+    "searchButton": "Search",
+    "accountSettings": "Account settings",
+    "logout": "Log out",
+    "signIn": "Sign in",
+    "createAccount": "Create account"
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Log in to continue capturing your book memos.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "needAccount": "Need an account?",
+    "createOne": "Create one",
+    "errorDefault": "Unable to sign in right now."
+  },
+  "register": {
+    "title": "Create an account",
+    "subtitle": "Save your memos and revisit them any time you like.",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "createAccount": "Create account",
+    "creatingAccount": "Creating account…",
+    "alreadyRegistered": "Already registered?",
+    "signIn": "Sign in",
+    "passwordMismatch": "Passwords do not match.",
+    "errorDefault": "Unable to register at the moment."
+  },
+  "home": {
+    "yourBookshelf": "Bookshelf",
+    "savedBooksAriaLabel": "Your saved books"
+  },
+  "search": {
+    "searchingFor": "Searching for {{query}}",
+    "resultsFor": "Results for {{query}}",
+    "searching": "Searching Google Books…",
+    "noResults": "No books matched {{query}}. Try a different search term.",
+    "error": "We could not fetch books. Please try again.",
+    "clearSearch": "Clear search",
+    "retrySearch": "Retry search",
+    "scrollLeft": "Scroll search results left",
+    "scrollRight": "Scroll search results right",
+    "booksMatchingSearch": "Books that match your search",
+    "cachedResults": "These books were loaded from your previous search. Don't see what you're looking for? Try searching again for fresh results.",
+    "retryTitle": "Search again for fresh results"
+  },
+  "book": {
+    "by": "by",
+    "noCover": "No cover available",
+    "published": "Published {{date}}",
+    "publicationUnknown": "Publication date unknown",
+    "addMemo": "Add memo",
+    "addToShelf": "Add to Shelf",
+    "inShelf": "In shelf",
+    "viewMemos": "View memos",
+    "memoCount": "{{count}} memo",
+    "memoCount_plural": "{{count}} memos",
+    "coverAlt": "Cover of {{title}}"
+  },
+  "language": {
+    "select": "Select language",
+    "english": "English",
+    "french": "Français",
+    "spanish": "Español"
+  }
+}
+

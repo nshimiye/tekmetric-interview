@@ -1,5 +1,6 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
@@ -17,6 +18,7 @@ interface LoginFormState {
 }
 
 function LoginScreen() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +47,7 @@ function LoginScreen() {
     } catch (error) {
       const message = error && typeof error === 'object' && 'message' in error 
         ? String(error.message) 
-        : 'Unable to sign in right now.';
+        : t('login.errorDefault');
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -60,10 +62,10 @@ function LoginScreen() {
       >
         <Stack spacing={1}>
           <Typography variant="h4" component="h1">
-            Welcome back
+            {t('login.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Log in to continue capturing your book memos.
+            {t('login.subtitle')}
           </Typography>
         </Stack>
 
@@ -75,7 +77,7 @@ function LoginScreen() {
 
         <Stack spacing={2.5}>
           <Input
-            label="Email"
+            label={t('login.email')}
             name="email"
             type="email"
             autoComplete="email"
@@ -84,7 +86,7 @@ function LoginScreen() {
           />
 
           <Input
-            label="Password"
+            label={t('login.password')}
             name="password"
             type="password"
             autoComplete="current-password"
@@ -95,13 +97,13 @@ function LoginScreen() {
 
         <Stack spacing={2.5}>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? t('login.signingIn') : t('login.signIn')}
           </Button>
 
           <Typography variant="body2" color="text.secondary">
-            Need an account?{' '}
+            {t('login.needAccount')}{' '}
             <Link component={RouterLink} to="/register">
-              Create one
+              {t('login.createOne')}
             </Link>
           </Typography>
         </Stack>

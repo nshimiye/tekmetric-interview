@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import IconButton from '@mui/material/IconButton';
@@ -138,6 +139,7 @@ function SearchResultsPanel({
   onAddToShelf,
   savedBookIds,
 }: SearchResultsPanelProps) {
+  const { t } = useTranslation();
   const safeResults = Array.isArray(results) ? results : [];
   const carouselTrackRef = useRef<HTMLUListElement>(null);
   const [carouselState, setCarouselState] = useState({
@@ -152,8 +154,8 @@ function SearchResultsPanel({
       : 'your search';
   const headingText =
     status === 'loading'
-      ? `Searching for ${readableQuery}`
-      : `Results for ${readableQuery}`;
+      ? t('search.searchingFor', { query: readableQuery })
+      : t('search.resultsFor', { query: readableQuery });
 
   const updateCarouselState = useCallback(() => {
     const track = carouselTrackRef.current;
@@ -287,19 +289,19 @@ function SearchResultsPanel({
           aria-live="polite"
           color="text.secondary"
         >
-          Searching Google Books…
+          {t('search.searching')}
         </Typography>
       );
     } else if (status === 'error') {
       feedback = (
         <Typography variant="body2" role="alert" color="error.main">
-          {error ?? 'We could not fetch books. Please try again.'}
+          {error ?? t('search.error')}
         </Typography>
       );
     } else if (status === 'success') {
       feedback = (
         <Typography variant="body2" color="text.secondary">
-          No books matched {readableQuery}. Try a different search term.
+          {t('search.noResults', { query: readableQuery })}
         </Typography>
       );
     }
@@ -324,23 +326,23 @@ function SearchResultsPanel({
               color="text.secondary"
               sx={{ maxWidth: 600 }}
             >
-              These books were loaded from your previous search. Don't see what you're looking for? Try searching again for fresh results.
+              {t('search.cachedResults')}
             </Typography>
           )}
         </Stack>
 
         <Stack direction="row" spacing={2}>
           <Button type="button" variant="secondary" onClick={handleClear}>
-            Clear search
+            {t('search.clearSearch')}
           </Button>
           {lastResultFromCache && hasResults && (
             <Button 
               type="button" 
               variant="primary" 
               onClick={onClearCache}
-              title="Search again for fresh results"
+              title={t('search.retryTitle')}
             >
-              Retry search
+              {t('search.retrySearch')}
             </Button>
           )}
         </Stack>
@@ -350,7 +352,7 @@ function SearchResultsPanel({
         {hasResults ? (
           <CarouselArea>
             <CarouselNavButton
-              aria-label="Scroll search results left"
+              aria-label={t('search.scrollLeft')}
               onClick={() => scrollCarouselBy(-1)}
               disabled={!carouselState.canScrollLeft}
               size="large"
@@ -362,7 +364,7 @@ function SearchResultsPanel({
             <CarouselTrack
               ref={carouselTrackRef}
               onScroll={updateCarouselState}
-              aria-label="Books that match your search"
+              aria-label={t('search.booksMatchingSearch')}
             >
               {safeResults.map((result) => {
                 const isSaved =
@@ -382,7 +384,7 @@ function SearchResultsPanel({
             </CarouselTrack>
 
             <CarouselNavButton
-              aria-label="Scroll search results right"
+              aria-label={t('search.scrollRight')}
               onClick={() => scrollCarouselBy(1)}
               disabled={!carouselState.canScrollRight}
               size="large"

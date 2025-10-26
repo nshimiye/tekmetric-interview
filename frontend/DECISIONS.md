@@ -22,6 +22,7 @@ Brand management
 
 - redux
 Make state logic more maintainable
+Easy to debug 
 
 - Using carousel (horizontal list) for search result
 Take less space so that user can still see the book shelf without too much scrolling
@@ -29,3 +30,8 @@ In most cases, user will know the name of the book they are searching
 
 - Allow users to reset cache
 If they search by author and the author just released a new book (which is not in the cached result)
+
+- react-i18next
+Most popular
+Straighforward API
+Repo seems to be actively maintained 

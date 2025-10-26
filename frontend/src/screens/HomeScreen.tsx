@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -49,6 +50,7 @@ const ShelfGrid = styled('div')(({ theme }) => ({
 }));
 
 function HomeScreen() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
@@ -135,10 +137,10 @@ function HomeScreen() {
       {savedBooks.length > 0 && (
         <Stack spacing={3}>
           <Typography variant="h4" component="h2">
-            Your bookshelf
+            {t('home.yourBookshelf')}
           </Typography>
 
-          <ShelfGrid role="list" aria-label="Your saved books">
+          <ShelfGrid role="list" aria-label={t('home.savedBooksAriaLabel')}>
             {savedBooks.map(({ book, memos }) => (
               <ShelfCard
                 key={book.id}

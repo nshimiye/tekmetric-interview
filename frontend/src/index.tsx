@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import './index.css';
+import './i18n/config';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import theme from './styles/theme';

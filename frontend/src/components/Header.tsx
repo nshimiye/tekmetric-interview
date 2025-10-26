@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, MouseEvent, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import AppBar from '@mui/material/AppBar';
 import Avatar from '@mui/material/Avatar';
 import Container from '@mui/material/Container';
@@ -19,6 +20,7 @@ import { styled, alpha } from '@mui/material/styles';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
 import Button from './Button';
+import LanguageSwitcher from './LanguageSwitcher';
 
 // Redux imports
 import {
@@ -140,6 +142,7 @@ function Header({
   user,
   onLogout,
 }: HeaderProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const isMenuOpen = Boolean(anchorEl);
@@ -238,7 +241,7 @@ function Header({
             gap={2}
           >
             <LogoLink component={Link} to="/" variant="h5">
-              Book Memo
+              {t('header.logo')}
             </LogoLink>
 
             <Stack
@@ -254,13 +257,13 @@ function Header({
                       type="search"
                       name="query"
                       size="small"
-                      placeholder="Search books by title, author, or ISBN..."
+                      placeholder={t('header.searchPlaceholder')}
                       value={searchTerm}
                       onChange={handleSearchChange}
                       fullWidth
                       autoComplete="off"
                       inputProps={{
-                        'aria-label': 'Search books',
+                        'aria-label': t('header.searchAriaLabel'),
                         inputMode: 'search',
                         role: 'searchbox',
                       }}
@@ -278,23 +281,26 @@ function Header({
                         type="submit"
                         size="small"
                       >
-                        Search
+                        {t('header.searchButton')}
                       </Button>
                   </SearchForm>
 
-                  <AvatarContainer>
-                    <Tooltip title="Account settings">
-                      <IconButton
-                        onClick={handleMenuOpen}
-                        size="small"
-                        aria-controls={isMenuOpen ? 'account-menu' : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={isMenuOpen ? 'true' : undefined}
-                      >
-                        <UserAvatar>{getUserInitials()}</UserAvatar>
-                      </IconButton>
-                    </Tooltip>
-                  </AvatarContainer>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <LanguageSwitcher />
+                    <AvatarContainer>
+                      <Tooltip title={t('header.accountSettings')}>
+                        <IconButton
+                          onClick={handleMenuOpen}
+                          size="small"
+                          aria-controls={isMenuOpen ? 'account-menu' : undefined}
+                          aria-haspopup="true"
+                          aria-expanded={isMenuOpen ? 'true' : undefined}
+                        >
+                          <UserAvatar>{getUserInitials()}</UserAvatar>
+                        </IconButton>
+                      </Tooltip>
+                    </AvatarContainer>
+                  </Stack>
                   <StyledMenu
                     id="account-menu"
                     anchorEl={anchorEl}
@@ -315,7 +321,7 @@ function Header({
                       <ListItemIcon>
                         <LogoutIcon fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText>Log out</ListItemText>
+                      <ListItemText>{t('header.logout')}</ListItemText>
                     </MenuItem>
                   </StyledMenu>
                 </>
@@ -324,20 +330,12 @@ function Header({
                   <ResponsiveButtonWrapper>
                     <Button
                       component={Link}
-                      to="/login"
-                      variant="secondary"
-                    >
-                      Sign in
-                    </Button>
-                  </ResponsiveButtonWrapper>
-                  <ResponsiveButtonWrapper>
-                    <Button
-                      component={Link}
                       to="/register"
                     >
-                      Create account
+                      {t('header.createAccount')}
                     </Button>
                   </ResponsiveButtonWrapper>
+                  <LanguageSwitcher />
                 </>
               )}
             </Stack>
