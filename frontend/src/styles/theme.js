@@ -105,9 +105,7 @@ let theme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 14,
           paddingBlock: 12,
-          paddingInline: 20,
         },
         containedSecondary: {
           color: designTokens.textPrimary,
@@ -126,7 +124,6 @@ let theme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 20,
           boxShadow: `0 12px 28px ${designTokens.overlayShadowSoft}`,
         },
       },

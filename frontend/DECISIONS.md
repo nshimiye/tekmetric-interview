@@ -15,6 +15,10 @@ Better developer expirience: Allowing developers to use css syntax directly in t
 - material ui
 Developer expirience and reduction in meintainance cost.
 Accessibility
+Easy to customize
 
 - src/styles/theme.js
 Brand management
+
+- redux
+Make state logic more maintainable

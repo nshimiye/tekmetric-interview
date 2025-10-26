@@ -2,10 +2,10 @@
 memo is something you remember about a given book
 
 ## Functional requirements
-- View a list of suggested books (list/grid)
-- Search for a book (list should show the search result (list/grid))
+- Search for a book 
+- list should show the search result (list)
 - Add a memo to a book
-- View a list of books that have your memo (table)
+- View a list of books that have your memo (grid/table)
 
 ## Non-Functional requirements
 - Offline/PWA/Service Worker, allow a user to write a  even if they do not have internet
@@ -24,3 +24,4 @@ memo is something you remember about a given book
 - Vite
 - `@mui/material`, `@emotion/react` for stylng with css-in-js
 - yarn for package management
+- localStorage is used to mock backend (stores and shore memos)

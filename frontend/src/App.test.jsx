@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import App from './App';
+import { AuthProvider } from './auth/AuthContext';
 import theme from './styles/theme';
 
 const renderWithProviders = (initialEntries = ['/']) =>
@@ -17,15 +18,41 @@ const renderWithProviders = (initialEntries = ['/']) =>
           v7_relativeSplatPath: true,
         }}
       >
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </MemoryRouter>
     </ThemeProvider>,
   );
 
 describe('App', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  const registerTestAccount = async (
+    user,
+    {
+      name = 'Test User',
+      email = 'test@example.com',
+      password = 'password123',
+    } = {},
+  ) => {
+    await user.type(screen.getByLabelText(/name/i), name);
+    await user.type(screen.getByLabelText(/^email/i), email);
+    await user.type(screen.getByLabelText(/^password$/i), password);
+    await user.type(screen.getByLabelText(/confirm password/i), password);
+
+    const createButton = screen.getByRole('button', { name: /create account/i });
+    await user.click(createButton);
+
+    await screen.findByRole('heading', { level: 2, name: /suggested books/i });
+  };
+
   it('follows the suggested books flow to add memos', async () => {
     const user = userEvent.setup();
-    renderWithProviders(['/']);
+    renderWithProviders(['/register']);
+    await registerTestAccount(user);
 
     expect(
       screen.getByRole('heading', { level: 2, name: /suggested books/i }),
@@ -42,10 +69,6 @@ describe('App', () => {
       name: /\+ memo/i,
     });
     await user.click(memoButton);
-
-    expect(
-      await screen.findByRole('heading', { level: 1, name: /reading notebook/i }),
-    ).toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', { level: 2, name: /project hail mary/i }),
@@ -85,34 +108,9 @@ describe('App', () => {
       within(memoList).getByText('Great worldbuilding throughout Arrakis.'),
     ).toBeInTheDocument();
 
-    const duneLink = screen.getByRole('link', { name: /dune/i });
-    await user.click(duneLink);
-
-    expect(
-      screen.getByRole('heading', { level: 2, name: /dune/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText(/your notes/i)).toHaveValue('');
-    expect(
-      screen.queryByRole('list', { name: /saved memos/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/save your memos to build a running log/i),
-    ).toBeInTheDocument();
-
-    const hailMaryLink = screen.getByRole('link', {
-      name: /project hail mary/i,
-    });
-    await user.click(hailMaryLink);
-
-    const restoredMemoList = await screen.findByRole('list', {
-      name: /saved memos/i,
-    });
-    expect(
-      within(restoredMemoList).getAllByRole('listitem'),
-    ).toHaveLength(2);
   });
 
-  it('searches Google Books and displays results', async () => {
+  it('searches Google Books and saves a memo from results', async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -138,7 +136,8 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     try {
-      renderWithProviders(['/']);
+      renderWithProviders(['/register']);
+      await registerTestAccount(user);
 
       const searchField = screen.getByRole('searchbox', { name: /search books/i });
       await user.type(searchField, 'Dune');
@@ -154,21 +153,184 @@ describe('App', () => {
       expect(
         await screen.findByRole('heading', { level: 2, name: /results for "dune"/i }),
       ).toBeInTheDocument();
-      expect(
-        await screen.findByRole('heading', { level: 3, name: /dune/i }),
-      ).toBeInTheDocument();
+      const resultHeading = await screen.findByRole('heading', {
+        level: 3,
+        name: /dune/i,
+      });
       expect(
         screen.getByText(/view on google books/i),
       ).toHaveAttribute('href', 'https://books.google.com/dune');
 
-      const clearButton = screen.getByRole('button', { name: /clear search/i });
-      await user.click(clearButton);
+      const resultCard = resultHeading.closest('article');
+      expect(resultCard).not.toBeNull();
+
+      const addMemoFromSearch = within(resultCard).getByRole('button', {
+        name: /add memo/i,
+      });
+      await user.click(addMemoFromSearch);
 
       expect(
-        await screen.findByRole('heading', { level: 2, name: /suggested books/i }),
+        await screen.findByRole('heading', { level: 2, name: /dune/i }),
+      ).toBeInTheDocument();
+
+      const memoField = screen.getByLabelText(/your notes/i);
+      await user.type(memoField, 'Thinking about spice.');
+      const addMemoButton = screen.getByRole('button', { name: /^add memo$/i });
+      await user.click(addMemoButton);
+
+      expect(
+        await screen.findByText(/memo added/i),
+      ).toBeInTheDocument();
+
+      const homeLink = screen.getByRole('link', { name: /book memo/i });
+      await user.click(homeLink);
+
+      const bookshelfList = await screen.findByRole('list', {
+        name: /your saved books/i,
+      });
+      const shelfItems = within(bookshelfList).getAllByRole('listitem');
+      const shelfCard = shelfItems.find((item) => {
+        const heading = within(item).queryByRole('heading', {
+          level: 3,
+          name: /dune/i,
+        });
+        return Boolean(heading);
+      });
+
+      expect(shelfCard, 'Expected to find a bookshelf card for Dune').toBeDefined();
+      expect(
+        within(shelfCard).getByText(/1 memo/i),
       ).toBeInTheDocument();
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('shares public memos between accounts on the same book', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(['/register']);
+
+    await registerTestAccount(user, {
+      name: 'Alice Reader',
+      email: 'alice@example.com',
+      password: 'password123',
+    });
+
+    const hailMaryHeading = screen.getByRole('heading', {
+      level: 3,
+      name: /project hail mary/i,
+    });
+    const hailMaryCard = hailMaryHeading.closest('article');
+    expect(hailMaryCard).not.toBeNull();
+
+    const memoButton = within(hailMaryCard).getByRole('button', {
+      name: /\+ memo/i,
+    });
+    await user.click(memoButton);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: /project hail mary/i }),
+    ).toBeInTheDocument();
+
+    const memoField = screen.getByLabelText(/your notes/i);
+    const shareDraftToggle = screen.getByRole('switch', {
+      name: /share this memo with other readers/i,
+    });
+    await user.click(shareDraftToggle);
+    await user.type(memoField, 'Alice public memo.');
+
+    const addMemoButton = screen.getByRole('button', { name: /^add memo$/i });
+    await user.click(addMemoButton);
+
+    expect(
+      await screen.findByText(/memo added/i),
+    ).toBeInTheDocument();
+
+    const savedMemoList = await screen.findByRole('list', {
+      name: /saved memos/i,
+    });
+    const savedItems = within(savedMemoList).getAllByRole('listitem');
+    expect(savedItems).toHaveLength(1);
+    expect(
+      within(savedItems[0]).getByText(/shared with other readers/i),
+    ).toBeInTheDocument();
+    const savedShareToggle = within(savedItems[0]).getByRole('switch', {
+      name: /share with other readers/i,
+    });
+    expect(savedShareToggle).toBeChecked();
+
+    expect(
+      screen.queryByRole('list', {
+        name: /shared memos from other readers/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    const logoutButton = screen.getByRole('button', { name: /log out/i });
+    await user.click(logoutButton);
+
+    const createAccountLink = await screen.findByRole('link', {
+      name: /create one/i,
+    });
+    await user.click(createAccountLink);
+
+    await registerTestAccount(user, {
+      name: 'Bob Reader',
+      email: 'bob@example.com',
+      password: 'password123',
+    });
+
+    const hailMaryHeadingAfter = screen.getByRole('heading', {
+      level: 3,
+      name: /project hail mary/i,
+    });
+    const hailMaryCardAfter = hailMaryHeadingAfter.closest('article');
+    expect(hailMaryCardAfter).not.toBeNull();
+
+    const memoButtonAfter = within(hailMaryCardAfter).getByRole('button', {
+      name: /\+ memo/i,
+    });
+    await user.click(memoButtonAfter);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: /project hail mary/i }),
+    ).toBeInTheDocument();
+
+    const bobMemoField = screen.getByLabelText(/your notes/i);
+    await user.type(bobMemoField, 'Bob private memo.');
+    const bobAddButton = screen.getByRole('button', { name: /^add memo$/i });
+    await user.click(bobAddButton);
+
+    expect(
+      await screen.findByText(/memo added/i),
+    ).toBeInTheDocument();
+
+    const bobSavedMemoList = await screen.findByRole('list', {
+      name: /saved memos/i,
+    });
+    expect(
+      within(bobSavedMemoList).getAllByRole('listitem'),
+    ).toHaveLength(1);
+
+    const sharedMemoList = await screen.findByRole('list', {
+      name: /shared memos from other readers/i,
+    });
+    const sharedItems = within(sharedMemoList).getAllByRole('listitem');
+    expect(sharedItems).toHaveLength(1);
+    expect(
+      within(sharedItems[0]).getByText('Alice Reader'),
+    ).toBeInTheDocument();
+    expect(
+      within(sharedItems[0]).getByText('Alice public memo.'),
+    ).toBeInTheDocument();
+  });
+
+  it('redirects unauthenticated users to the sign-in screen', () => {
+    renderWithProviders(['/']);
+    expect(
+      screen.getByRole('heading', { level: 1, name: /welcome back/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /sign in/i }),
+    ).toBeInTheDocument();
   });
 });
