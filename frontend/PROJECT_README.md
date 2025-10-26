@@ -24,3 +24,4 @@ memo is something you remember about a given book
 - Vite
 - `@mui/material`, `@emotion/react` for stylng with css-in-js
 - yarn for package management
+- localStorage is used to mock backend (stores and shore memos)

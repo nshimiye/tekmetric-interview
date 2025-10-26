@@ -19,3 +19,6 @@ Easy to customize
 
 - src/styles/theme.js
 Brand management
+
+- redux
+Make state logic more maintainable
