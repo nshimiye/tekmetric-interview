@@ -33,7 +33,7 @@ const normalizeStore = (value: unknown): PublicMemoStore => {
           return null;
         }
 
-        const { id, body, createdAt, author, sharedAt } = entry as any;
+        const { id, body, createdAt, author, sharedAt } = entry as Record<string, unknown>;
         const memoId =
           typeof id === 'string' && id.trim().length > 0 ? id.trim() : null;
         const memoBody =

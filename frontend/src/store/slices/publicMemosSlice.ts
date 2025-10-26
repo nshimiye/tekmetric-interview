@@ -186,7 +186,18 @@ const publicMemosSlice = createSlice({
 
       let nextStore: PublicMemoStore;
       if (nextList.length === 0) {
-        const { [bookId]: _, ...rest } = state.store;
+        // Cleanup empty public memo list
+        // Example before:
+        // state.store = {
+        //   "book1": [{ id: memoId, body: "Memo body", ... }],
+        //   "book2": [{ id: "memo2", body: "Another Memo", ... }]
+        // }
+        //
+        // Example after removing last memo from "book1":
+        // state.store = {
+        //   "book2": [{ id: "memo2", body: "Another Memo", ... }]
+        // }
+        const { [bookId]: _removed, ...rest } = state.store;
         nextStore = rest;
       } else {
         nextStore = {

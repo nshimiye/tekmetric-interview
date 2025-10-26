@@ -136,7 +136,7 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
 
         {snippet && (
           <ShelfSnippet variant="body2">
-            "{snippet}"
+            &quot;{snippet}&quot;
           </ShelfSnippet>
         )}
 

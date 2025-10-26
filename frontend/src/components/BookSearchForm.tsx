@@ -31,7 +31,6 @@ function BookSearchForm({
   onSearchTermChange,
   onSubmit,
   size = 'small',
-  autoFocus = false,
   inputId,
 }: BookSearchFormProps) {
   const { t } = useTranslation();
@@ -48,7 +47,6 @@ function BookSearchForm({
         onChange={onSearchTermChange}
         fullWidth
         autoComplete="off"
-        autoFocus={autoFocus}
         inputProps={{
           'aria-label': t('header.searchAriaLabel'),
           inputMode: 'search',

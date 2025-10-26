@@ -105,7 +105,9 @@ export function useBookMemoScreen(bookId: string | undefined) {
   const canViewSharedMemos = savedMemos.length > 0 && sharedMemos.length > 0;
 
   // Effects
+  // Reset form state when book changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftMemo('');
     setStatus('idle');
     setSharePublic(false);

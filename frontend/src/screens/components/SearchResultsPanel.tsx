@@ -234,8 +234,9 @@ function SearchResultsPanel({
       track.scrollLeft = 0;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateCarouselState();
-  }, [hasResults, safeResults, updateCarouselState]);
+  }, [hasResults, updateCarouselState]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -252,11 +253,13 @@ function SearchResultsPanel({
     };
   }, [updateCarouselState]);
 
+  // Reset carousel state when search is cleared
   useEffect(() => {
     if (status !== 'idle') {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCarouselState((prev) =>
       prev.canScrollLeft || prev.canScrollRight
         ? { canScrollLeft: false, canScrollRight: false }

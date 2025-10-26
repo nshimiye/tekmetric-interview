@@ -49,7 +49,6 @@ function HomeScreen() {
             onSearchTermChange={handleWelcomeSearchChange}
             onSubmit={handleWelcomeSearchSubmit}
             size="medium"
-            autoFocus
           />
         </WelcomeSection>
       )}

@@ -39,13 +39,13 @@ const NoCoverText = styled(Typography)(({ theme }) => ({
   textAlign: 'center',
 }));
 
-const OneLineText = styled(Typography)(({ theme }) => ({
+const OneLineText = styled(Typography)(() => ({
   textOverflow: 'ellipsis',
   overflow: 'hidden',
   whiteSpace: 'nowrap',
   width: '100%'
 }));
-const ResultTitle = styled(OneLineText)(({ theme }) => ({
+const ResultTitle = styled(OneLineText)(() => ({
   fontSize: '1.05rem',
   fontWeight: 600,
 }));
