@@ -31,6 +31,9 @@ In most cases, user will know the name of the book they are searching
 - Allow users to reset cache
 If they search by author and the author just released a new book (which is not in the cached result)
 
+- Allow users to view web app in different languages
+Given that this is a app for readers, it makes sense for someone who reads French books to also view the site in French.
+
 - react-i18next
 Most popular
 Straighforward API
