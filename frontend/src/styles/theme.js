@@ -105,7 +105,7 @@ let theme = createTheme({
       },
       styleOverrides: {
         root: {
-          paddingBlock: 12,
+          paddingInline: 16, // 16 means 1rem
         },
         containedSecondary: {
           color: designTokens.textPrimary,
@@ -130,9 +130,9 @@ let theme = createTheme({
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        root: {
-          borderRadius: 16,
-        },
+        // root: {
+          // borderRadius: 16,
+        // },
         notchedOutline: {
           borderColor: designTokens.borderPanel,
         },

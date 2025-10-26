@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '../../components/Button';
+import ResultCard from './ResultCard';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius * 3,
@@ -34,6 +33,12 @@ const PanelBody = styled('div')(({ theme }) => ({
 const CarouselArea = styled('div')({
   position: 'relative',
 });
+
+const CarouselHeading = styled(Typography)(({ theme }) => ({
+  fontSize: theme.typography.pxToRem(16),
+  fontWeight: 400,
+  color: theme.palette.text.secondary,
+}));
 
 const CarouselNavButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== 'placement',
@@ -95,69 +100,8 @@ const CarouselItem = styled('li')(({ theme }) => ({
     width: 280,
   },
   [theme.breakpoints.up('md')]: {
-    width: 320,
+    width: 280,
   },
-}));
-
-const ResultCard = styled(Paper)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 3,
-  padding: theme.spacing(3),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2.5),
-  height: '100%',
-}));
-
-const ResultCover = styled('div')(({ theme }) => ({
-  width: '100%',
-  aspectRatio: '3 / 4',
-  borderRadius: theme.shape.borderRadius * 2.5,
-  border: `1px solid ${theme.custom.designTokens.borderMuted}`,
-  overflow: 'hidden',
-  backgroundColor: theme.custom.designTokens.backgroundBody,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const ResultThumbnailImage = styled('img')({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-});
-
-const NoCoverText = styled(Typography)(({ theme }) => ({
-  paddingLeft: theme.spacing(2),
-  paddingRight: theme.spacing(2),
-  textAlign: 'center',
-}));
-
-const ResultTitle = styled(Typography)(({ theme }) => ({
-  fontSize: '1.05rem',
-  fontWeight: 600,
-}));
-
-const ResultDescription = styled(Typography)(() => ({
-  display: '-webkit-box',
-  WebkitLineClamp: 4,
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-}));
-
-const ResultMeta = styled('div')(({ theme }) => ({
-  marginTop: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-}));
-
-const ResultActionsRow = styled(Stack)(() => ({
-  width: '100%',
-}));
-
-const ResultActionButton = styled(Button)(() => ({
-  flex: 1,
-  minWidth: 140,
 }));
 
 function SearchResultsPanel({
@@ -346,9 +290,9 @@ function SearchResultsPanel({
         alignItems={{ xs: 'flex-start', md: 'center' }}
         justifyContent="space-between"
       >
-        <Typography variant="h5" component="h2">
+        <CarouselHeading component="h2">
           {headingText}
-        </Typography>
+        </CarouselHeading>
 
         <Button type="button" variant="secondary" onClick={handleClear}>
           Clear search
@@ -378,98 +322,13 @@ function SearchResultsPanel({
                   savedBookIds instanceof Set && savedBookIds.has(result.id);
 
                 return (
-                  <CarouselItem
-                    key={result.id}
-                  >
+                  <CarouselItem key={result.id}>
                     <ResultCard
-                      component="article"
-                      variant="outlined"
-                    >
-                      <ResultCover>
-                        {result.thumbnail ? (
-                          <ResultThumbnailImage
-                            src={result.thumbnail}
-                            alt={`Cover of ${result.title}`}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <NoCoverText
-                            variant="caption"
-                            component="span"
-                            color="text.secondary"
-                          >
-                            No cover available
-                          </NoCoverText>
-                        )}
-                      </ResultCover>
-
-                      <Box>
-                        <ResultTitle variant="h6" component="h3">
-                          {result.title}
-                        </ResultTitle>
-                        {Array.isArray(result.authors) && result.authors.length > 0 && (
-                          <Typography variant="body2" color="text.secondary">
-                            by {result.authors.join(', ')}
-                          </Typography>
-                        )}
-                      </Box>
-
-                      {result.description && (
-                        <ResultDescription
-                          variant="body2"
-                          color="text.secondary"
-                        >
-                          {result.description}
-                        </ResultDescription>
-                      )}
-
-                      <ResultMeta>
-                        <Typography variant="caption" color="text.secondary">
-                          {result.publishedDate
-                            ? `Published ${result.publishedDate}`
-                            : 'Publication date unknown'}
-                        </Typography>
-
-                        <ResultActionsRow
-                          direction={{ xs: 'column', sm: 'row' }}
-                          spacing={1}
-                        >
-                          <ResultActionButton
-                            type="button"
-                            onClick={() => {
-                              if (typeof onAddMemo === 'function') {
-                                onAddMemo(result);
-                              }
-                            }}
-                          >
-                            Add memo
-                          </ResultActionButton>
-                          <ResultActionButton
-                            type="button"
-                            variant="secondary"
-                            disabled={isSaved}
-                            onClick={() => {
-                              if (!isSaved && typeof onAddToShelf === 'function') {
-                                onAddToShelf(result);
-                              }
-                            }}
-                          >
-                            {isSaved ? 'In shelf' : 'Add to Shelf'}
-                          </ResultActionButton>
-                        </ResultActionsRow>
-
-                        {result.infoLink && (
-                          <Link
-                            href={result.infoLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            color="info.main"
-                          >
-                            View on Google Books
-                          </Link>
-                        )}
-                      </ResultMeta>
-                    </ResultCard>
+                      result={result}
+                      isSaved={isSaved}
+                      onAddMemo={onAddMemo}
+                      onAddToShelf={onAddToShelf}
+                    />
                   </CarouselItem>
                 );
               })}

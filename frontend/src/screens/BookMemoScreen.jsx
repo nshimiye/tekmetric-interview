@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Navigate,
+  useNavigate,
   useParams,
 } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
@@ -182,6 +185,7 @@ const StatusText = styled(Typography, {
 function BookMemoScreen() {
   const { user } = useAuth();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { bookId } = useParams();
   
   // Redux state
@@ -366,15 +370,27 @@ function BookMemoScreen() {
     <StyledContentContainer>
       <MemoLayout>
         <MemoColumn>
-          <Stack spacing={0.5}>
-            <Typography variant="overline" color="text.secondary">
+          <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
+            <Link
+              component="button"
+              variant="body1"
+              onClick={() => navigate('/')}
+              sx={{
+                textDecoration: 'none',
+                color: 'text.secondary',
+                cursor: 'pointer',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  color: 'text.primary',
+                },
+              }}
+            >
+              Home
+            </Link>
+            <Typography variant="body1" color="text.primary">
               {selectedBook.title}
             </Typography>
-            <Typography variant="h4">Your memos</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Capture notes that matter to you now and come back to them later.
-            </Typography>
-          </Stack>
+          </Breadcrumbs>
 
           <MemoCard elevation={0}>
 
@@ -414,11 +430,8 @@ function BookMemoScreen() {
 
           <MemoCollectionCard variant="outlined">
             <Stack spacing={1}>
-              <Typography variant="overline" color="text.secondary">
-                Saved memos
-              </Typography>
               <Typography variant="h5" component="h3">
-                Your running log
+              Your memos
               </Typography>
             </Stack>
 
@@ -444,7 +457,7 @@ function BookMemoScreen() {
                         alignItems={{ xs: 'flex-start', sm: 'baseline' }}
                       >
                         <Typography variant="subtitle2" fontWeight={600}>
-                          Memo {index + 1}
+                        {memo.body}
                         </Typography>
                         <Typography
                           component="time"
@@ -455,12 +468,6 @@ function BookMemoScreen() {
                           {new Date(memo.createdAt).toLocaleString()}
                         </Typography>
                       </Stack>
-                      <MemoBody
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        {memo.body}
-                      </MemoBody>
                       <Stack
                         direction={{ xs: 'column', sm: 'row' }}
                         spacing={1.5}
@@ -510,11 +517,8 @@ function BookMemoScreen() {
           {canViewSharedMemos && (
             <MemoCollectionCard variant="outlined">
               <Stack spacing={1}>
-                <Typography variant="overline" color="text.secondary">
-                  Community
-                </Typography>
                 <Typography variant="h5" component="h3">
-                  Shared memos from other readers
+                Community
                 </Typography>
               </Stack>
               <MemoList
@@ -547,7 +551,7 @@ function BookMemoScreen() {
                         alignItems={{ xs: 'flex-start', sm: 'baseline' }}
                       >
                         <Typography variant="subtitle2" fontWeight={600}>
-                          {displayName}
+                          {memo.body}
                         </Typography>
                         {sharedDate ? (
                           <Typography
@@ -564,7 +568,7 @@ function BookMemoScreen() {
                         variant="body2"
                         color="text.secondary"
                       >
-                        {memo.body}
+                        By {displayName}
                       </MemoBody>
                     </MemoListItem>
                   );

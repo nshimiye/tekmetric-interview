@@ -218,15 +218,16 @@ function Header({
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               alignItems={{ xs: 'stretch', sm: 'center' }}
-              spacing={1}
+              spacing={8}
             >
               {isAuthenticated ? (
                 <>
                   <SearchForm role="search" onSubmit={handleSearchSubmit}>
                     <TextField
-                      type="text"
+                      type="search"
                       name="query"
-                      placeholder="Search books by title, author, or ISBN…"
+                      size="small"
+                      placeholder="Search books by title, author, or ISBN..."
                       value={searchTerm}
                       onChange={handleSearchChange}
                       fullWidth
@@ -245,34 +246,13 @@ function Header({
                       }}
                     />
 
-                    <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
-                      gap={1}
-                      sx={{ width: { xs: '100%', sm: 'auto' } }}
-                    >
+        
                       <Button
                         type="submit"
-                        startIcon={<SearchIcon fontSize="small" aria-hidden="true" />}
-                        sx={{
-                          width: { xs: '100%', sm: 'auto' },
-                          minWidth: { sm: 130 },
-                        }}
+                        size="small"
                       >
                         Search
                       </Button>
-
-                      {searchStatus !== 'idle' && (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          startIcon={<ClearIcon fontSize="small" aria-hidden="true" />}
-                          onClick={clearSearch}
-                          sx={{ width: { xs: '100%', sm: 'auto' } }}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </Stack>
                   </SearchForm>
 
                   <Tooltip title="Account settings">
