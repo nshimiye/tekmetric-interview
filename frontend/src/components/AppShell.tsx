@@ -10,6 +10,10 @@ import {
   loadLibrary,
   clearLibrary,
 } from '../store/slices/librarySlice';
+import {
+  setCurrentUser,
+  clearSearch,
+} from '../store/slices/searchSlice';
 import { AppDispatch } from '../store';
 
 // Styled Components
@@ -47,19 +51,23 @@ function AppShell() {
   const { isAuthenticated, user, logout } = useAuth();
   const userId = user?.id ?? null;
 
-  // Load library when user logs in
+  // Load library and set search user when user logs in
   useEffect(() => {
     if (!isAuthenticated || !userId) {
       dispatch(clearLibrary());
+      dispatch(setCurrentUser(null));
       return;
     }
 
     dispatch(loadLibrary({ userId }));
+    dispatch(setCurrentUser(userId));
   }, [dispatch, isAuthenticated, userId]);
 
   const handleLogout = () => {
     logout();
     dispatch(clearLibrary());
+    dispatch(clearSearch());
+    dispatch(setCurrentUser(null));
     navigate('/login', { replace: true });
   };
 

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../index';
+import { loadSearchCache, saveSearchCache, clearSearchCacheStorage } from '../../storage/searchCacheStorage';
 
 const MAX_RESULTS = 7;
 
@@ -68,7 +69,20 @@ const mapVolumeToResult = (volume: Volume): BookSearchResult => {
 // Async thunk for searching books
 export const searchBooks = createAsyncThunk(
   'search/searchBooks',
-  async (query: string, { signal }) => {
+  async (query: string, { signal, getState }) => {
+    const state = getState() as RootState;
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    // Check if result is already cached
+    const cachedResult = state.search.cache[normalizedQuery];
+    if (cachedResult) {
+      return {
+        results: cachedResult,
+        query,
+        fromCache: true,
+      };
+    }
+
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
         query,
@@ -85,11 +99,16 @@ export const searchBooks = createAsyncThunk(
     return {
       results: items.map(mapVolumeToResult),
       query,
+      fromCache: false,
     };
   },
 );
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
+
+interface SearchCache {
+  [normalizedQuery: string]: BookSearchResult[];
+}
 
 interface SearchState {
   term: string;
@@ -97,6 +116,9 @@ interface SearchState {
   results: BookSearchResult[];
   error: string | null;
   lastQuery: string;
+  cache: SearchCache;
+  lastResultFromCache: boolean;
+  currentUserId: string | null;
 }
 
 const initialState: SearchState = {
@@ -105,6 +127,9 @@ const initialState: SearchState = {
   results: [],
   error: null,
   lastQuery: '',
+  cache: {}, // Will be loaded after user is set
+  lastResultFromCache: false,
+  currentUserId: null,
 };
 
 const searchSlice = createSlice({
@@ -115,12 +140,19 @@ const searchSlice = createSlice({
       state.term = action.payload;
     },
     
+    setCurrentUser: (state, action: PayloadAction<string | null>) => {
+      state.currentUserId = action.payload;
+      // Load cache for this user
+      state.cache = loadSearchCache(action.payload);
+    },
+    
     clearSearch: (state) => {
       state.term = '';
       state.status = 'idle';
       state.results = [];
       state.error = null;
       state.lastQuery = '';
+      state.lastResultFromCache = false;
     },
     
     resetSearchState: (state) => {
@@ -128,19 +160,41 @@ const searchSlice = createSlice({
       state.results = [];
       state.error = null;
       state.lastQuery = '';
+      state.lastResultFromCache = false;
+    },
+    
+    clearSearchCache: (state) => {
+      state.cache = {};
+      state.lastResultFromCache = false;
+      // Clear from localStorage for current user
+      clearSearchCacheStorage(state.currentUserId);
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(searchBooks.pending, (state, action) => {
-        state.status = 'loading';
+        const normalizedQuery = action.meta.arg.toLowerCase().trim();
+        const isCached = !!state.cache[normalizedQuery];
+        
+        if (!isCached) {
+          state.status = 'loading';
+          state.results = [];
+        }
         state.error = null;
         state.lastQuery = action.meta.arg;
-        state.results = [];
       })
       .addCase(searchBooks.fulfilled, (state, action) => {
+        const normalizedQuery = action.payload.query.toLowerCase().trim();
         state.status = 'success';
         state.results = action.payload.results;
+        state.lastResultFromCache = action.payload.fromCache || false;
+        
+        // Cache the results if not already cached
+        if (!action.payload.fromCache) {
+          state.cache[normalizedQuery] = action.payload.results;
+          // Save to localStorage for current user
+          saveSearchCache(state.cache, state.currentUserId);
+        }
       })
       .addCase(searchBooks.rejected, (state, action) => {
         if (action.error.name === 'AbortError') {
@@ -148,14 +202,17 @@ const searchSlice = createSlice({
         }
         state.status = 'error';
         state.error = action.error.message ?? 'Something went wrong while searching for books.';
+        state.lastResultFromCache = false;
       });
   },
 });
 
 export const {
   setSearchTerm,
+  setCurrentUser,
   clearSearch,
   resetSearchState,
+  clearSearchCache,
 } = searchSlice.actions;
 
 export default searchSlice.reducer;
@@ -166,4 +223,6 @@ export const selectSearchStatus = (state: RootState) => state.search.status;
 export const selectSearchResults = (state: RootState) => state.search.results;
 export const selectSearchError = (state: RootState) => state.search.error;
 export const selectLastSearchQuery = (state: RootState) => state.search.lastQuery;
+export const selectSearchCacheSize = (state: RootState) => Object.keys(state.search.cache).length;
+export const selectLastResultFromCache = (state: RootState) => state.search.lastResultFromCache;
 

@@ -20,7 +20,11 @@ import {
   selectSearchResults,
   selectSearchError,
   selectLastSearchQuery,
+  selectSearchCacheSize,
+  selectLastResultFromCache,
   clearSearch as clearSearchAction,
+  clearSearchCache as clearSearchCacheAction,
+  searchBooks,
   BookSearchResult,
 } from '../store/slices/searchSlice';
 import { AppDispatch } from '../store';
@@ -54,6 +58,8 @@ function HomeScreen() {
   const searchResults = useSelector(selectSearchResults);
   const searchError = useSelector(selectSearchError);
   const lastSearchQuery = useSelector(selectLastSearchQuery);
+  const searchCacheSize = useSelector(selectSearchCacheSize);
+  const lastResultFromCache = useSelector(selectLastResultFromCache);
 
   const savedBooks = useMemo(
     () =>
@@ -78,6 +84,15 @@ function HomeScreen() {
   const clearSearch = useCallback(() => {
     dispatch(clearSearchAction());
   }, [dispatch]);
+
+  const clearCache = useCallback(() => {
+    // Clear the cache first
+    dispatch(clearSearchCacheAction());
+    // Then re-run the search with the same query to get fresh results
+    if (lastSearchQuery && lastSearchQuery.trim().length > 0) {
+      dispatch(searchBooks(lastSearchQuery));
+    }
+  }, [dispatch, lastSearchQuery]);
 
   const handleNavigateToBook = (book: BookSearchResult | LibraryBook) => {
     if (!book) {
@@ -108,7 +123,10 @@ function HomeScreen() {
         results={searchResults}
         error={searchError}
         lastQuery={lastSearchQuery}
+        cacheSize={searchCacheSize}
+        lastResultFromCache={lastResultFromCache}
         onClear={clearSearch}
+        onClearCache={clearCache}
         onAddMemo={handleAddMemoFromSearch}
         onAddToShelf={handleAddToShelfFromSearch}
         savedBookIds={savedBookIds}

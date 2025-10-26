@@ -9,10 +9,11 @@ memo is something you remember about a given book
 
 ## Non-Functional requirements
 - Intl support
-- Caching search queries
+- Caching search queries (DONE)
 - The web application should be responsive, look well on desktop and mobile
 - Lazy loading components that rarely used
-- Offline/PWA/Service Worker, allow a user to write a  even if they do not have internet
+- Offline/PWA/Service Worker, allow a user to write a memo, even if they do not have internet
+- Skeleton loading - useful when searching for books
 
 
 

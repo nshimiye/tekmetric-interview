@@ -26,3 +26,6 @@ Make state logic more maintainable
 - Using carousel (horizontal list) for search result
 Take less space so that user can still see the book shelf without too much scrolling
 In most cases, user will know the name of the book they are searching
+
+- Allow users to reset cache
+If they search by author and the author just released a new book (which is not in the cached result)

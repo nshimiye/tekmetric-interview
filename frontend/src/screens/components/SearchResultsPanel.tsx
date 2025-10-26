@@ -116,7 +116,10 @@ interface SearchResultsPanelProps {
   results?: BookSearchResult[];
   error?: string | null;
   lastQuery?: string;
+  cacheSize?: number;
+  lastResultFromCache?: boolean;
   onClear: () => void;
+  onClearCache: () => void;
   onAddMemo: (book: BookSearchResult) => void;
   onAddToShelf: (book: BookSearchResult) => void;
   savedBookIds: Set<string>;
@@ -127,7 +130,10 @@ function SearchResultsPanel({
   results = [],
   error = null,
   lastQuery = '',
+  cacheSize = 0,
+  lastResultFromCache = false,
   onClear,
+  onClearCache,
   onAddMemo,
   onAddToShelf,
   savedBookIds,
@@ -308,13 +314,36 @@ function SearchResultsPanel({
         alignItems={{ xs: 'flex-start', md: 'center' }}
         justifyContent="space-between"
       >
-        <CarouselHeading component="h2">
-          {headingText}
-        </CarouselHeading>
+        <Stack spacing={0.5}>
+          <CarouselHeading component="h2">
+            {headingText}
+          </CarouselHeading>
+          {lastResultFromCache && hasResults && (
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ maxWidth: 600 }}
+            >
+              These books were loaded from your previous search. Don't see what you're looking for? Try searching again for fresh results.
+            </Typography>
+          )}
+        </Stack>
 
-        <Button type="button" variant="secondary" onClick={handleClear}>
-          Clear search
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button type="button" variant="secondary" onClick={handleClear}>
+            Clear search
+          </Button>
+          {lastResultFromCache && hasResults && (
+            <Button 
+              type="button" 
+              variant="primary" 
+              onClick={onClearCache}
+              title="Search again for fresh results"
+            >
+              Retry search
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       <PanelBody>
