@@ -16,9 +16,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled, alpha } from '@mui/material/styles';
-import ClearIcon from '@mui/icons-material/Clear';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
 import Button from './Button';
 
@@ -28,7 +26,6 @@ import {
   setSearchTerm,
   clearSearch as clearSearchAction,
   selectSearchTerm,
-  selectSearchStatus,
 } from '../store/slices/searchSlice';
 import { Box } from '@mui/material';
 import { AppDispatch } from '../store';
@@ -111,6 +108,27 @@ const UserEmail = styled(Typography)(({ theme }) => ({
   marginTop: theme.spacing(0.5),
 }));
 
+const AvatarContainer = styled(Box)(() => ({
+  textAlign: 'center',
+}));
+
+const BreadcrumbLink = styled(Link)(({ theme }) => ({
+  textDecoration: 'none',
+  color: theme.palette.text.secondary,
+  cursor: 'pointer',
+  '&:hover': {
+    textDecoration: 'underline',
+    color: theme.palette.text.primary,
+  },
+}));
+
+const ResponsiveButtonWrapper = styled(Box)(({ theme }) => ({
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    width: 'auto',
+  },
+}));
+
 interface HeaderProps {
   isAuthenticated: boolean;
   user: PublicUser | null;
@@ -128,7 +146,6 @@ function Header({
   
   // Redux state
   const searchTerm = useSelector(selectSearchTerm);
-  const searchStatus = useSelector(selectSearchStatus);
   
   // Ref for managing abort controller
   const activeRequest = useRef<AbortController | null>(null);
@@ -265,19 +282,19 @@ function Header({
                       </Button>
                   </SearchForm>
 
-<Box sx={{ textAlign: 'center' }}>
-                  <Tooltip title="Account settings">
-                    <IconButton
-                      onClick={handleMenuOpen}
-                      size="small"
-                      aria-controls={isMenuOpen ? 'account-menu' : undefined}
-                      aria-haspopup="true"
-                      aria-expanded={isMenuOpen ? 'true' : undefined}
-                    >
-                      <UserAvatar>{getUserInitials()}</UserAvatar>
-                    </IconButton>
-                  </Tooltip>
-</Box>
+                  <AvatarContainer>
+                    <Tooltip title="Account settings">
+                      <IconButton
+                        onClick={handleMenuOpen}
+                        size="small"
+                        aria-controls={isMenuOpen ? 'account-menu' : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={isMenuOpen ? 'true' : undefined}
+                      >
+                        <UserAvatar>{getUserInitials()}</UserAvatar>
+                      </IconButton>
+                    </Tooltip>
+                  </AvatarContainer>
                   <StyledMenu
                     id="account-menu"
                     anchorEl={anchorEl}
@@ -304,21 +321,23 @@ function Header({
                 </>
               ) : (
                 <>
-                  <Button
-                    component={Link}
-                    to="/login"
-                    variant="secondary"
-                    sx={{ width: { xs: '100%', sm: 'auto' } }}
-                  >
-                    Sign in
-                  </Button>
-                  <Button
-                    component={Link}
-                    to="/register"
-                    sx={{ width: { xs: '100%', sm: 'auto' } }}
-                  >
-                    Create account
-                  </Button>
+                  <ResponsiveButtonWrapper>
+                    <Button
+                      component={Link}
+                      to="/login"
+                      variant="secondary"
+                    >
+                      Sign in
+                    </Button>
+                  </ResponsiveButtonWrapper>
+                  <ResponsiveButtonWrapper>
+                    <Button
+                      component={Link}
+                      to="/register"
+                    >
+                      Create account
+                    </Button>
+                  </ResponsiveButtonWrapper>
                 </>
               )}
             </Stack>

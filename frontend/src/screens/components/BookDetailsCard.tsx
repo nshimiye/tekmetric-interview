@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import {
   BookInfoCard,
   BookCover,
@@ -8,6 +9,13 @@ import {
 } from './BookMemoScreen.styles';
 import { Book } from '../../data/books';
 import { LibraryBook } from '../../store/slices/librarySlice';
+
+const TruncatedDescription = styled(Typography)(() => ({
+  display: '-webkit-box',
+  WebkitLineClamp: 5,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+}));
 
 interface BookDetailsCardProps {
   book: Book | LibraryBook | null;
@@ -65,18 +73,12 @@ function BookDetailsCard({ book }: BookDetailsCardProps) {
         )}
       </Stack>
       {book.description && (
-        <Typography
+        <TruncatedDescription
           variant="body2"
           color="text.secondary"
-          sx={{
-            display: '-webkit-box',
-            WebkitLineClamp: 5,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
         >
           {book.description}
-        </Typography>
+        </TruncatedDescription>
       )}
     </BookInfoCard>
   );

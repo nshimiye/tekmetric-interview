@@ -53,12 +53,12 @@ const ShelfCardContent = styled(CardContent)(({ theme }) => ({
 }));
 
 
-const OneLineText = styled(Typography)(({ theme }) => ({
+const OneLineText = styled(Typography)(() => ({
   textOverflow: 'ellipsis',
   overflow: 'hidden',
   whiteSpace: 'nowrap',
   width: '100%'
-}));
+})) as typeof Typography;
 
 const ShelfSnippet = styled(OneLineText)(({ theme }) => ({
   fontSize: theme.typography.pxToRem(14),
@@ -67,6 +67,15 @@ const ShelfSnippet = styled(OneLineText)(({ theme }) => ({
 
 const FullWidthButton = styled(Button)(() => ({
   width: '100%',
+}));
+
+const StyledCardActions = styled(CardActions)(({ theme }) => ({
+  marginTop: 'auto',
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  paddingBottom: theme.spacing(3),
+  position: 'relative',
+  zIndex: 2,
 }));
 
 const getLatestMemoSnippet = (memos: Memo[]): string | null => {
@@ -134,11 +143,11 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
         </Typography>
       </ShelfCardContent>
 
-      <CardActions sx={{ mt: 'auto', px: 3, pb: 3, position: 'relative', zIndex: 2 }}>
+      <StyledCardActions>
         <FullWidthButton onClick={() => onViewMemos(book)}>
           View memos
         </FullWidthButton>
-      </CardActions>
+      </StyledCardActions>
     </StyledShelfCard>
   );
 }

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import { useAuth } from '../auth/AuthContext';
 import BOOKS, { Book } from '../data/books';
 
@@ -11,7 +12,8 @@ import BOOKS, { Book } from '../data/books';
 import {
   selectLibrary,
   ensureBookInLibrary as ensureBookInLibraryAction,
-  updateBookMemos as updateBookMemosAction,
+  addMemo as addMemoAction,
+  updateMemo as updateMemoAction,
   LibraryBook,
 } from '../store/slices/librarySlice';
 
@@ -37,6 +39,20 @@ import {
 import { createMemoId } from './utils/memoUtils';
 import { AppDispatch } from '../store';
 import { Memo } from '../library/libraryStorage';
+
+const StyledBreadcrumbs = styled(Breadcrumbs)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+}));
+
+const BreadcrumbLink = styled(Link)(({ theme }) => ({
+  textDecoration: 'none',
+  color: theme.palette.text.secondary,
+  cursor: 'pointer',
+  '&:hover': {
+    textDecoration: 'underline',
+    color: theme.palette.text.primary,
+  },
+}));
 
 interface UserMemo extends Memo {
   isPublic?: boolean;
@@ -66,9 +82,16 @@ function BookMemoScreen() {
     [dispatch],
   );
 
-  const updateBookMemos = useCallback(
-    (book: Book | LibraryBook, memoUpdater: (memos: Memo[]) => Memo[]) => {
-      dispatch(updateBookMemosAction({ book, memoUpdater }));
+  const addMemoToBook = useCallback(
+    (book: Book | LibraryBook, memo: Memo) => {
+      dispatch(addMemoAction({ book, memo }));
+    },
+    [dispatch],
+  );
+
+  const updateBookMemo = useCallback(
+    (book: Book | LibraryBook, memoId: string, updatedMemo: Memo) => {
+      dispatch(updateMemoAction({ book, memoId, updatedMemo }));
     },
     [dispatch],
   );
@@ -153,10 +176,7 @@ function BookMemoScreen() {
       isPublic: sharePublic,
     };
 
-    updateBookMemos(selectedBook, (existing) => {
-      const current = Array.isArray(existing) ? existing : [];
-      return [...current, memoEntry];
-    });
+    addMemoToBook(selectedBook, memoEntry);
 
     if (sharePublic && selectedBookId) {
       publishPublicMemo(selectedBookId, memoEntry, user);
@@ -186,15 +206,7 @@ function BookMemoScreen() {
       isPublic: nextValue,
     };
 
-    updateBookMemos(selectedBook, (existing) => {
-      if (!Array.isArray(existing)) {
-        return [];
-      }
-
-      return existing.map((memo) =>
-        memo.id === memoId ? updatedMemo : memo,
-      );
-    });
+    updateBookMemo(selectedBook, memoId, updatedMemo);
 
     if (nextValue) {
       publishPublicMemo(selectedBookId, updatedMemo, user);
@@ -207,27 +219,18 @@ function BookMemoScreen() {
     <StyledContentContainer>
       <MemoLayout>
         <MemoColumn>
-          <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
-            <Link
+          <StyledBreadcrumbs aria-label="breadcrumb">
+            <BreadcrumbLink
               component="button"
               variant="body1"
               onClick={() => navigate('/')}
-              sx={{
-                textDecoration: 'none',
-                color: 'text.secondary',
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline',
-                  color: 'text.primary',
-                },
-              }}
             >
               Home
-            </Link>
+            </BreadcrumbLink>
             <Typography variant="body1" color="text.primary">
               {selectedBook.title}
             </Typography>
-          </Breadcrumbs>
+          </StyledBreadcrumbs>
 
           <MemoEditor
             draftMemo={draftMemo}

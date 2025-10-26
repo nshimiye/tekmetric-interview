@@ -4,7 +4,49 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import { Book } from '../data/books';
+
+const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: theme.spacing(1),
+  borderRadius: theme.spacing(2.5),
+  transition: theme.transitions.create(['background-color', 'transform'], {
+    duration: theme.transitions.duration.shortest,
+  }),
+  '&:hover': {
+    transform: 'translateY(-2px)',
+  },
+  '&.Mui-selected': {
+    border: `1px solid ${theme.palette.primary.main}`,
+    backgroundColor: theme.palette.action.selected,
+  },
+  '&:not(.Mui-selected)': {
+    border: `1px solid ${theme.custom.designTokens.borderCard}`,
+    backgroundColor: theme.palette.background.paper,
+  },
+}));
+
+const StyledListItemText = styled(ListItemText)(() => ({
+  margin: 0,
+}));
+
+const BookListContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2),
+}));
+
+const StyledList = styled(List)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+}));
+
+const ListItem = styled(Box)(() => ({
+  listStyle: 'none',
+}));
 
 interface BookListItemProps {
   book: Book;
@@ -17,34 +59,13 @@ function BookListItem({ book }: BookListItemProps) {
   });
 
   return (
-    <ListItemButton
+    <StyledListItemButton
       to={`/books/${book.id}`}
       component={NavLink}
       selected={Boolean(match)}
       end
-      sx={{
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 1,
-        borderRadius: 2.5,
-        border: (theme) =>
-          `1px solid ${
-            match
-              ? theme.palette.primary.main
-              : theme.custom.designTokens.borderCard
-          }`,
-        backgroundColor: (theme) =>
-          match ? theme.palette.action.selected : theme.palette.background.paper,
-        transition: (theme) =>
-          theme.transitions.create(['background-color', 'transform'], {
-            duration: theme.transitions.duration.shortest,
-          }),
-        '&:hover': {
-          transform: 'translateY(-2px)',
-        },
-      }}
     >
-      <ListItemText
+      <StyledListItemText
         primary={
           <Typography component="span" fontWeight={600}>
             {book.title}
@@ -61,9 +82,8 @@ function BookListItem({ book }: BookListItemProps) {
             </Typography>
           ) : null
         }
-        sx={{ m: 0 }}
       />
-    </ListItemButton>
+    </StyledListItemButton>
   );
 }
 
@@ -73,27 +93,19 @@ interface BookListProps {
 
 function BookList({ books }: BookListProps) {
   return (
-    <Box
+    <BookListContainer
       component="nav"
       aria-label="Book list"
       data-component="book-list"
-      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <List
-        disablePadding
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-        }}
-      >
+      <StyledList disablePadding>
         {books.map((book) => (
-          <Box key={book.id} component="li" sx={{ listStyle: 'none' }}>
+          <ListItem key={book.id} component="li">
             <BookListItem book={book} />
-          </Box>
+          </ListItem>
         ))}
-      </List>
-    </Box>
+      </StyledList>
+    </BookListContainer>
   );
 }
 

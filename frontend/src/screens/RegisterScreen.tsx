@@ -2,13 +2,14 @@ import { useState, ChangeEvent, FormEvent } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import ContentContainer from '../components/layout/ContentContainer';
 import { useAuth } from '../auth/AuthContext';
+import { FormPaper } from '../components/FormPaper';
+
 
 interface RegisterFormState {
   name: string;
@@ -65,20 +66,9 @@ function RegisterScreen() {
 
   return (
     <ContentContainer component="section" gap={6}>
-      <Paper
+      <FormPaper
         component="form"
         onSubmit={handleSubmit}
-        sx={{
-          maxWidth: 420,
-          width: '100%',
-          px: { xs: 3, sm: 4 },
-          py: { xs: 4, sm: 5 },
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 3,
-        }}
-        elevation={0}
       >
         <Stack spacing={1}>
           <Typography variant="h4" component="h1">
@@ -144,7 +134,7 @@ function RegisterScreen() {
             </Link>
           </Typography>
         </Stack>
-      </Paper>
+      </FormPaper>
     </ContentContainer>
   );
 }

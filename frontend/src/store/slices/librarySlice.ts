@@ -183,12 +183,12 @@ const librarySlice = createSlice({
       saveUserLibrary(state.userId, state.items as UserLibrary);
     },
     
-    updateBookMemos: (state, action: PayloadAction<{ book: BookInput; memoUpdater: (memos: Memo[]) => Memo[] }>) => {
+    addMemo: (state, action: PayloadAction<{ book: BookInput; memo: Memo }>) => {
       if (!state.userId) {
         return;
       }
 
-      const { book, memoUpdater } = action.payload;
+      const { book, memo } = action.payload;
       const normalized = normalizeBookForLibrary(book);
       if (!normalized) {
         return;
@@ -204,7 +204,35 @@ const librarySlice = createSlice({
 
       const existing = state.items[normalized.id];
       const currentMemos = Array.isArray(existing.memos) ? existing.memos : [];
-      const nextMemos = memoUpdater(currentMemos);
+
+      state.items[normalized.id] = {
+        book: existing.book,
+        memos: [...currentMemos, memo],
+      };
+
+      saveUserLibrary(state.userId, state.items as UserLibrary);
+    },
+
+    updateMemo: (state, action: PayloadAction<{ book: BookInput; memoId: string; updatedMemo: Memo }>) => {
+      if (!state.userId) {
+        return;
+      }
+
+      const { book, memoId, updatedMemo } = action.payload;
+      const normalized = normalizeBookForLibrary(book);
+      if (!normalized) {
+        return;
+      }
+
+      const existing = state.items[normalized.id];
+      if (!existing) {
+        return;
+      }
+
+      const currentMemos = Array.isArray(existing.memos) ? existing.memos : [];
+      const nextMemos = currentMemos.map((memo) =>
+        memo.id === memoId ? updatedMemo : memo
+      );
 
       state.items[normalized.id] = {
         book: existing.book,
@@ -220,7 +248,8 @@ export const {
   loadLibrary,
   clearLibrary,
   ensureBookInLibrary,
-  updateBookMemos,
+  addMemo,
+  updateMemo,
 } = librarySlice.actions;
 
 export default librarySlice.reducer;
