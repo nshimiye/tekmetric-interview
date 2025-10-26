@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -10,6 +11,20 @@ import Button from '../components/Button';
 import ContentContainer from '../components/layout/ContentContainer';
 import BOOKS from '../data/books';
 import SearchResultsPanel from './components/SearchResultsPanel';
+
+// Redux imports
+import {
+  selectLibrary,
+  ensureBookInLibrary as ensureBookInLibraryAction,
+} from '../store/slices/librarySlice';
+
+import {
+  selectSearchStatus,
+  selectSearchResults,
+  selectSearchError,
+  selectLastSearchQuery,
+  clearSearch as clearSearchAction,
+} from '../store/slices/searchSlice';
 
 const StyledContentContainer = styled(ContentContainer)(({ theme }) => ({
   gap: theme.spacing(6),
@@ -146,11 +161,14 @@ const getLatestMemoSnippet = (memos) => {
 
 function HomeScreen() {
   const navigate = useNavigate();
-  const outletContext = useOutletContext() ?? {};
-  const searchContext = outletContext.search ?? {};
-  const library = outletContext.library ?? {};
-  const ensureBookInLibrary =
-    outletContext.ensureBookInLibrary ?? (() => null);
+  const dispatch = useDispatch();
+
+  // Redux state
+  const library = useSelector(selectLibrary);
+  const searchStatus = useSelector(selectSearchStatus);
+  const searchResults = useSelector(selectSearchResults);
+  const searchError = useSelector(selectSearchError);
+  const lastSearchQuery = useSelector(selectLastSearchQuery);
 
   const savedBooks = useMemo(
     () =>
@@ -163,6 +181,18 @@ function HomeScreen() {
     () => new Set(savedBooks.map((entry) => entry.book.id)),
     [savedBooks],
   );
+
+  const ensureBookInLibrary = useCallback(
+    (book) => {
+      dispatch(ensureBookInLibraryAction(book));
+      return book;
+    },
+    [dispatch],
+  );
+
+  const clearSearch = useCallback(() => {
+    dispatch(clearSearchAction());
+  }, [dispatch]);
 
   const handleNavigateToBook = (book) => {
     if (!book) {
@@ -189,11 +219,11 @@ function HomeScreen() {
   return (
     <StyledContentContainer>
       <SearchResultsPanel
-        status={searchContext.status ?? 'idle'}
-        results={searchContext.results}
-        error={searchContext.error}
-        lastQuery={searchContext.lastQuery}
-        onClear={searchContext.clearSearch}
+        status={searchStatus}
+        results={searchResults}
+        error={searchError}
+        lastQuery={lastSearchQuery}
+        onClear={clearSearch}
         onAddMemo={handleAddMemoFromSearch}
         onAddToShelf={handleAddToShelfFromSearch}
         savedBookIds={savedBookIds}
@@ -268,49 +298,6 @@ function HomeScreen() {
         </Stack>
       )}
 
-      <Stack spacing={3}>
-        <Typography variant="h4" component="h2">
-          Suggested books
-        </Typography>
-
-        <SuggestionsGrid>
-          {BOOKS.map((book) => (
-            <SuggestedCard
-              key={book.id}
-              component="article"
-            >
-              <SuggestedCover aria-hidden="true" />
-
-              <SuggestedCardContent>
-                <SuggestedTitle
-                  variant="h6"
-                  component={book.title.toLowerCase() === 'dune' ? 'p' : 'h3'}
-                  aria-hidden={
-                    book.title.toLowerCase() === 'dune' ? true : undefined
-                  }
-                  id={`book-title-${book.id}`}
-                >
-                  {book.title}
-                </SuggestedTitle>
-              </SuggestedCardContent>
-
-              <SuggestedCardActions>
-                <FullWidthButton
-                  aria-describedby={`book-title-${book.id}`}
-                  onClick={() =>
-                    handleNavigateToBook({
-                      ...book,
-                      source: 'suggested',
-                    })
-                  }
-                >
-                  + Memo
-                </FullWidthButton>
-              </SuggestedCardActions>
-            </SuggestedCard>
-          ))}
-        </SuggestionsGrid>
-      </Stack>
     </StyledContentContainer>
   );
 }

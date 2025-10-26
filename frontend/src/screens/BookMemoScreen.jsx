@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Navigate,
-  useOutletContext,
   useParams,
 } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -17,6 +17,19 @@ import Input from '../components/Input';
 import ContentContainer from '../components/layout/ContentContainer';
 import { useAuth } from '../auth/AuthContext';
 import BOOKS from '../data/books';
+
+// Redux imports
+import {
+  selectLibrary,
+  ensureBookInLibrary as ensureBookInLibraryAction,
+  updateBookMemos as updateBookMemosAction,
+} from '../store/slices/librarySlice';
+
+import {
+  selectPublicMemoStore,
+  publishMemo,
+  unpublishMemo,
+} from '../store/slices/publicMemosSlice';
 
 const createMemoId = () =>
   `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -168,21 +181,47 @@ const StatusText = styled(Typography, {
 
 function BookMemoScreen() {
   const { user } = useAuth();
-  const outletContext = useOutletContext() ?? {};
-  const library = outletContext.library ?? {};
-  const ensureBookInLibrary = outletContext.ensureBookInLibrary ?? (() => null);
-  const updateBookMemos = outletContext.updateBookMemos ?? (() => {});
-  const publicMemoStore = outletContext.publicMemos ?? {};
-  const publishPublicMemo =
-    outletContext.publishPublicMemo ?? (() => {});
-  const unpublishPublicMemo =
-    outletContext.unpublishPublicMemo ?? (() => {});
+  const dispatch = useDispatch();
   const { bookId } = useParams();
+  
+  // Redux state
+  const library = useSelector(selectLibrary);
+  const publicMemoStore = useSelector(selectPublicMemoStore);
+  
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
   const memoInputRef = useRef(null);
   const currentUserId = user?.id ?? null;
+
+  // Redux action dispatchers
+  const ensureBookInLibrary = useCallback(
+    (book) => {
+      dispatch(ensureBookInLibraryAction(book));
+    },
+    [dispatch],
+  );
+
+  const updateBookMemos = useCallback(
+    (book, memoUpdater) => {
+      dispatch(updateBookMemosAction({ book, memoUpdater }));
+    },
+    [dispatch],
+  );
+
+  const publishPublicMemo = useCallback(
+    (bookId, memo, author) => {
+      dispatch(publishMemo({ bookId, memo, author }));
+    },
+    [dispatch],
+  );
+
+  const unpublishPublicMemo = useCallback(
+    (bookId, memoId) => {
+      dispatch(unpublishMemo({ bookId, memoId }));
+    },
+    [dispatch],
+  );
 
   const libraryEntry = library?.[bookId] ?? null;
   const catalogBook = useMemo(
@@ -338,41 +377,15 @@ function BookMemoScreen() {
           </Stack>
 
           <MemoCard elevation={0}>
-            <Stack spacing={1}>
-              <Typography variant="overline" color="text.secondary">
-                New memo
-              </Typography>
-              <Typography variant="h5" component="h2">
-                Write what stood out
-              </Typography>
-            </Stack>
 
             <Input
               multiline
-              label="Your notes"
+              ariaLabel="Your notes"
               name="memo"
               placeholder="What resonated with you? Capture quotes, themes, or questions."
               value={draftMemo}
               onChange={handleMemoChange}
               inputRef={memoInputRef}
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  color="primary"
-                  checked={sharePublic}
-                  onChange={handleShareDraftChange}
-                  inputProps={{
-                    'aria-label': 'Share this memo with other readers',
-                  }}
-                />
-              }
-              label="Share this memo with other readers"
-              componentsProps={{
-                typography: { variant: 'body2' },
-              }}
-              sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' } }}
             />
 
             <Stack
