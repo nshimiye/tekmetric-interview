@@ -30,20 +30,24 @@ memo is something you remember about a given book
 
 ## Folder structure
 
-src
-- components
-  |- header
-    |- index.tsx
-    |- styles.ts
-  |- shelf-card
-    |- index.tsx
-    |- styles.ts
-- screens
-  |- book-memo-screen
-    |- index.tsx
-    |- state.ts
-    |- styles.ts
-  - home-screen
-    |- index.tsx
-    |- state.ts
-    |- styles.ts
+screens/
+  ├── book-memo-screen/
+  │   ├── index.tsx       (main component)
+  │   ├── hooks.ts        (custom hooks for state & logic)
+  │   └── styles.ts       (styled components)
+components/
+  ├── header/
+  │   ├── index.tsx       (main component)
+  │   ├── hooks.ts        (custom hooks for business logic)
+  │   ├── styles.ts       (styled components)
+  │   └── UserMenu.tsx    (sub-component)
+  ├── shelf-card/
+  │   ├── index.tsx
+  │   └── styles.ts
+
+
+### Architecture Guidelines
+- Keep main component files under 100 lines
+- Extract business logic and state management into custom hooks (hooks.ts)
+- Keep styled components in separate styles.ts files
+- Sub-components can be extracted into separate files when needed

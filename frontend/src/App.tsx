@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import RequireAuth from './auth/RequireAuth';
 import AppShell from './components/AppShell';
-import BookMemoScreen from './screens/BookMemoScreen';
+import BookMemoScreen from './screens/book-memo-screen';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';

@@ -1,73 +1,36 @@
 import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Link from '@mui/material/Link';
-import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material/styles';
-import { useAuth } from '../auth/AuthContext';
-import BOOKS, { Book } from '../data/books';
-
-// Redux imports
+import { useAuth } from '../../auth/AuthContext';
+import BOOKS, { Book } from '../../data/books';
 import {
   selectLibrary,
   ensureBookInLibrary as ensureBookInLibraryAction,
   addMemo as addMemoAction,
   updateMemo as updateMemoAction,
   LibraryBook,
-} from '../store/slices/librarySlice';
-
+} from '../../store/slices/librarySlice';
 import {
   selectPublicMemoStore,
   publishMemo,
   unpublishMemo,
-} from '../store/slices/publicMemosSlice';
+} from '../../store/slices/publicMemosSlice';
+import { AppDispatch } from '../../store';
+import { Memo } from '../../library/libraryStorage';
+import { createMemoId } from '../utils/memoUtils';
 
-// Component imports
-import MemoEditor from './components/MemoEditor';
-import UserMemosSection from './components/UserMemosSection';
-import CommunityMemosSection from './components/CommunityMemosSection';
-import BookDetailsCard from './components/BookDetailsCard';
-
-// Styles and utilities
-import {
-  StyledContentContainer,
-  MemoLayout,
-  MemoColumn,
-  BookColumn,
-} from './components/BookMemoScreen.styles';
-import { createMemoId } from './utils/memoUtils';
-import { AppDispatch } from '../store';
-import { Memo } from '../library/libraryStorage';
-
-const StyledBreadcrumbs = styled(Breadcrumbs)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
-}));
-
-const BreadcrumbLink = styled(Link)(({ theme }) => ({
-  textDecoration: 'none',
-  color: theme.palette.text.secondary,
-  cursor: 'pointer',
-  '&:hover': {
-    textDecoration: 'underline',
-    color: theme.palette.text.primary,
-  },
-}));
-
-interface UserMemo extends Memo {
+export interface UserMemo extends Memo {
   isPublic?: boolean;
 }
 
-function BookMemoScreen() {
+export function useBookMemoScreen(bookId: string | undefined) {
   const { user } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const { bookId } = useParams<{ bookId: string }>();
-
+  
   // Redux state
   const library = useSelector(selectLibrary);
   const publicMemoStore = useSelector(selectPublicMemoStore);
 
+  // Local state
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
@@ -110,6 +73,7 @@ function BookMemoScreen() {
     [dispatch],
   );
 
+  // Derived state
   const libraryEntry = bookId ? library?.[bookId] ?? null : null;
   const catalogBook = useMemo(
     () => BOOKS.find((book) => book.id === bookId) ?? null,
@@ -120,6 +84,7 @@ function BookMemoScreen() {
   const savedMemos: UserMemo[] = Array.isArray(libraryEntry?.memos)
     ? (libraryEntry.memos as UserMemo[])
     : [];
+
   const sharedMemos = useMemo(() => {
     if (!selectedBookId) {
       return [];
@@ -133,9 +98,10 @@ function BookMemoScreen() {
       (entry) => (entry?.author?.id ?? null) !== currentUserId,
     );
   }, [publicMemoStore, selectedBookId, currentUserId]);
-  const canViewSharedMemos =
-    savedMemos.length > 0 && sharedMemos.length > 0;
 
+  const canViewSharedMemos = savedMemos.length > 0 && sharedMemos.length > 0;
+
+  // Effects
   useEffect(() => {
     setDraftMemo('');
     setStatus('idle');
@@ -154,10 +120,7 @@ function BookMemoScreen() {
     }
   }, [ensureBookInLibrary, selectedBook]);
 
-  if (!selectedBook) {
-    return <Navigate to="/" replace />;
-  }
-
+  // Event handlers
   const handleMemoChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setDraftMemo(event.target.value);
     setStatus('editing');
@@ -165,7 +128,7 @@ function BookMemoScreen() {
 
   const handleSaveMemo = () => {
     const hasDraft = draftMemo.trim().length > 0;
-    if (!hasDraft) {
+    if (!hasDraft || !selectedBook) {
       return;
     }
 
@@ -192,7 +155,7 @@ function BookMemoScreen() {
   };
 
   const handleToggleMemoPublic = (memoId: string, nextValue: boolean) => {
-    if (!selectedBookId) {
+    if (!selectedBookId || !selectedBook) {
       return;
     }
 
@@ -215,49 +178,18 @@ function BookMemoScreen() {
     }
   };
 
-  return (
-    <StyledContentContainer>
-      <MemoLayout>
-        <MemoColumn>
-          <StyledBreadcrumbs aria-label="breadcrumb">
-            <BreadcrumbLink
-              component="button"
-              variant="body1"
-              onClick={() => navigate('/')}
-            >
-              Home
-            </BreadcrumbLink>
-            <Typography variant="body1" color="text.primary">
-              {selectedBook.title}
-            </Typography>
-          </StyledBreadcrumbs>
-
-          <MemoEditor
-            draftMemo={draftMemo}
-            onMemoChange={handleMemoChange}
-            onSaveMemo={handleSaveMemo}
-            onClearDraft={handleClearDraft}
-            status={status}
-            memoInputRef={memoInputRef}
-          />
-
-          <UserMemosSection
-            memos={savedMemos}
-            onToggleMemoPublic={handleToggleMemoPublic}
-          />
-
-          {canViewSharedMemos && (
-            <CommunityMemosSection memos={sharedMemos} />
-          )}
-        </MemoColumn>
-
-        <BookColumn>
-          <BookDetailsCard book={selectedBook} />
-        </BookColumn>
-      </MemoLayout>
-    </StyledContentContainer>
-  );
+  return {
+    selectedBook,
+    savedMemos,
+    sharedMemos,
+    canViewSharedMemos,
+    draftMemo,
+    status,
+    memoInputRef,
+    handleMemoChange,
+    handleSaveMemo,
+    handleClearDraft,
+    handleToggleMemoPublic,
+  };
 }
-
-export default BookMemoScreen;
 
