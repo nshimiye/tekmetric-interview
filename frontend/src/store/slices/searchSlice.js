@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-const MAX_RESULTS = 12;
+const MAX_RESULTS = 7;
 
 const mapVolumeToResult = (volume) => {
   const info = volume.volumeInfo ?? {};
