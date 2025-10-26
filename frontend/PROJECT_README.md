@@ -26,10 +26,12 @@ memo is something you remember about a given book
 - Vite
 - `@mui/material`, `@emotion/react` for stylng with css-in-js
 - yarn for package management
-- localStorage is used to mock backend (stores and shore memos)
+- localStorage is used to mock backend (stores and share memos)
 
 ## Folder structure 
 Goal is to make sure each file has at most 100 lines (to help future developer understand the code)
+
+```sh
 screens/
   ├── {screen-1}/
   │   ├── index.tsx       (main component - 84 lines)
@@ -52,7 +54,7 @@ components/
   └── {simple-component}/
       ├── index.tsx
       └── styles.ts
-
+```
 
 ### Architecture Guidelines
 - Keep main component files under 100 lines
