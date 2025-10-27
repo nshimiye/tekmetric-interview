@@ -6,8 +6,8 @@ import {
   BookInfoCard,
   BookCover,
   BookCoverImage,
-} from './BookMemoScreen.styles';
-import type { LibraryBook } from '../../../store/slices/librarySlice';
+} from '../../screens/book-memo-screen/components/BookMemoScreen.styles';
+import type { LibraryBook } from '../../store/slices/librarySlice';
 import { useTranslation } from 'react-i18next';
 
 const TruncatedDescription = styled(Typography)(() => ({

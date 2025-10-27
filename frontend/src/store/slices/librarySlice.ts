@@ -10,60 +10,20 @@ export type LibraryItems = Record<string, LibraryEntry>;
 
 type LibraryStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
-const normalizeAuthors = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((author) => (typeof author === 'string' ? author.trim() : String(author ?? '').trim()))
-      .filter(Boolean);
-  }
+// export interface BookInput {
+//   id?: string;
+//   title?: string;
+//   description?: string;
+//   authors?: unknown;
+//   author?: unknown;
+//   thumbnail?: unknown;
+//   image?: unknown;
+//   infoLink?: unknown;
+//   publishedDate?: unknown;
+//   source?: unknown;
+// }
 
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? [trimmed] : [];
-  }
 
-  return [];
-};
-
-export interface BookInput {
-  id?: string;
-  title?: string;
-  description?: string;
-  authors?: unknown;
-  author?: unknown;
-  thumbnail?: unknown;
-  image?: unknown;
-  infoLink?: unknown;
-  publishedDate?: unknown;
-  source?: unknown;
-}
-
-export const normalizeBookForLibrary = (book: BookInput): LibraryBook | null => {
-  if (!book || !book.id) {
-    return null;
-  }
-
-  const titleValue =
-    typeof book.title === 'string' && book.title.trim().length > 0
-      ? book.title.trim()
-      : 'Untitled';
-
-  return {
-    id: String(book.id),
-    title: titleValue,
-    description: typeof book.description === 'string' ? book.description : '',
-    authors: normalizeAuthors(book.authors ?? book.author),
-    thumbnail:
-      typeof book.thumbnail === 'string'
-        ? book.thumbnail
-        : typeof book.image === 'string'
-          ? book.image
-          : null,
-    infoLink: typeof book.infoLink === 'string' ? book.infoLink : null,
-    publishedDate: typeof book.publishedDate === 'string' ? book.publishedDate : null,
-    source: typeof book.source === 'string' ? book.source : null,
-  };
-};
 
 const areAuthorsEqual = (a: string[] = [], b: string[] = []): boolean => {
   if (a === b) {
@@ -130,15 +90,8 @@ const librarySlice = createSlice({
       state.error = null;
     },
     
-    ensureBookInLibrary: (state, action: PayloadAction<BookInput>) => {
-      if (!state.userId) {
-        return;
-      }
-
-      const normalized = normalizeBookForLibrary(action.payload);
-      if (!normalized) {
-        return;
-      }
+    ensureBookInLibrary: (state, action: PayloadAction<LibraryBook>) => {
+      const normalized = action.payload;
 
       const existing = state.items[normalized.id];
       if (existing && areBooksEqual(existing.book, normalized)) {
@@ -161,13 +114,13 @@ const librarySlice = createSlice({
       state.items[normalized.id] = nextEntry;
     },
     
-    addMemo: (state, action: PayloadAction<{ book: BookInput; memo: Memo }>) => {
+    addMemo: (state, action: PayloadAction<{ book: LibraryBook; memo: Memo }>) => {
       if (!state.userId) {
         return;
       }
 
       const { book, memo } = action.payload;
-      const normalized = normalizeBookForLibrary(book);
+      const normalized = book;
       if (!normalized) {
         return;
       }
@@ -190,13 +143,13 @@ const librarySlice = createSlice({
 
     },
     
-    updateMemo: (state, action: PayloadAction<{ book: BookInput; memoId: string; updatedMemo: Memo }>) => {
+    updateMemo: (state, action: PayloadAction<{ book: LibraryBook; memoId: string; updatedMemo: Memo }>) => {
       if (!state.userId) {
         return;
       }
 
       const { book, memoId, updatedMemo } = action.payload;
-      const normalized = normalizeBookForLibrary(book);
+      const normalized = book;
       if (!normalized) {
         return;
       }

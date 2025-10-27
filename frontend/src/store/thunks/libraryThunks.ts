@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { loadUserLibrary, saveUserLibrary } from '../../api/library';
-import { libraryInternalActions, type BookInput, type LibraryItems } from '../slices/librarySlice';
+import { libraryInternalActions, type LibraryItems } from '../slices/librarySlice';
 import type { RootState } from '../index';
-import type { Memo } from '../../api/library';
+import type { LibraryBook, Memo } from '../../api/library';
 
 /**
  * Async thunk for fetching a user's library from the API layer.
@@ -39,7 +39,7 @@ const persistLibraryState = async (getState: () => RootState): Promise<void> => 
   }
 };
 
-export const ensureBookInLibrary = createAsyncThunk<void, BookInput, { state: RootState }>(
+export const ensureBookInLibrary = createAsyncThunk<void, LibraryBook, { state: RootState }>(
   'library/ensureBookInLibraryAndPersist',
   async (book, { dispatch, getState }) => {
     dispatch(libraryInternalActions.ensureBookInLibrary(book));
@@ -49,7 +49,7 @@ export const ensureBookInLibrary = createAsyncThunk<void, BookInput, { state: Ro
 
 export const addMemo = createAsyncThunk<
   void,
-  { book: BookInput; memo: Memo },
+  { book: LibraryBook; memo: Memo },
   { state: RootState }
 >('library/addMemoAndPersist', async (payload, { dispatch, getState }) => {
   dispatch(libraryInternalActions.addMemo(payload));
@@ -58,7 +58,7 @@ export const addMemo = createAsyncThunk<
 
 export const updateMemo = createAsyncThunk<
   void,
-  { book: BookInput; memoId: string; updatedMemo: Memo },
+  { book: LibraryBook; memoId: string; updatedMemo: Memo },
   { state: RootState }
 >('library/updateMemoAndPersist', async (payload, { dispatch, getState }) => {
   dispatch(libraryInternalActions.updateMemo(payload));

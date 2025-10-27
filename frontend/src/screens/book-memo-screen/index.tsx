@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import MemoEditor from './components/MemoEditor';
 import UserMemosSection from './components/UserMemosSection';
 import CommunityMemosSection from './components/CommunityMemosSection';
-import BookDetailsCard from './components/BookDetailsCard';
+import BookDetailsCard from '../../components/cards/BookDetailsCard';
 import { useBookMemoScreen } from './hooks';
 import {
   StyledContentContainer,

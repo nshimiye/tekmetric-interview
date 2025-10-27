@@ -5,60 +5,6 @@ import { loadPublicMemos } from '../thunks/publicMemosThunks';
 
 export type { PublicMemoStore } from '../../api/publicMemos';
 
-const arePublicMemoListsEqual = (a: PublicMemo[] = [], b: PublicMemo[] = []): boolean => {
-  if (a === b) {
-    return true;
-  }
-
-  if (!Array.isArray(a) || !Array.isArray(b)) {
-    return false;
-  }
-
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  return a.every((entry, index) => {
-    const other = b[index];
-    if (!other) {
-      return false;
-    }
-
-    const entryAuthor = entry.author ?? {};
-    const otherAuthor = other.author ?? {};
-
-    return (
-      entry.id === other.id &&
-      entry.body === other.body &&
-      entry.createdAt === other.createdAt &&
-      entry.sharedAt === other.sharedAt &&
-      (entryAuthor.id ?? null) === (otherAuthor.id ?? null) &&
-      (entryAuthor.name ?? '') === (otherAuthor.name ?? '')
-    );
-  });
-};
-
-const arePublicStoresEqual = (a: PublicMemoStore = {}, b: PublicMemoStore = {}): boolean => {
-  if (a === b) {
-    return true;
-  }
-
-  const aKeys = Object.keys(a);
-  const bKeys = Object.keys(b);
-
-  if (aKeys.length !== bKeys.length) {
-    return false;
-  }
-
-  return aKeys.every((key) => {
-    if (!Object.prototype.hasOwnProperty.call(b, key)) {
-      return false;
-    }
-
-    return arePublicMemoListsEqual(a[key], b[key]);
-  });
-};
-
 export interface MemoInput {
   id: string;
   body: string;
@@ -66,39 +12,11 @@ export interface MemoInput {
 }
 
 const createPublicMemoEntry = (memo: MemoInput, author: MemoAuthor): PublicMemo | null => {
-  if (!memo || typeof memo !== 'object') {
-    return null;
-  }
-
-  const { id, body, createdAt } = memo;
-  if (typeof id !== 'string' || id.trim().length === 0) {
-    return null;
-  }
-
-  const trimmedBody = typeof body === 'string' ? body.trim() : '';
-  if (trimmedBody.length === 0) {
-    return null;
-  }
-
-  const memoCreatedAt =
-    typeof createdAt === 'string' && createdAt.trim().length > 0
-      ? createdAt
-      : new Date().toISOString();
-
-  const authorId =
-    author && typeof author.id === 'string' && author.id.trim().length > 0
-      ? author.id.trim()
-      : null;
-  const authorName =
-    author && typeof author.name === 'string' && author.name.trim().length > 0
-      ? author.name.trim()
-      : 'Anonymous reader';
-
   return {
-    id: id.trim(),
-    body: trimmedBody,
-    createdAt: memoCreatedAt,
-    author: { id: authorId, name: authorName },
+    id: memo.id,
+    body: memo.body,
+    createdAt: memo.createdAt,
+    author: { id: author.id, name: author.name },
     sharedAt: new Date().toISOString(),
   };
 };
@@ -158,9 +76,7 @@ const publicMemosSlice = createSlice({
         [bookId]: nextList,
       };
 
-      if (!arePublicStoresEqual(state.store, nextStore)) {
-        state.store = nextStore;
-      }
+      state.store = nextStore;
     },
     
     unpublishMemo: (state, action: PayloadAction<{ bookId: string; memoId: string }>) => {
@@ -206,9 +122,7 @@ const publicMemosSlice = createSlice({
         };
       }
 
-      if (!arePublicStoresEqual(state.store, nextStore)) {
         state.store = nextStore;
-      }
     },
   },
   extraReducers: (builder) => {

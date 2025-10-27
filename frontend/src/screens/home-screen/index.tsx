@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import ShelfCard from '../../components/ShelfCard';
+import ShelfCard from '../../components/cards/ShelfCard';
 import SearchResultsPanel from '../components/SearchResultsPanel';
 import BookSearchForm from '../../components/BookSearchForm';
 import { useHomeScreen } from './hooks';

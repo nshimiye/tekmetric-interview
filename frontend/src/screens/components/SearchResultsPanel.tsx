@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import ResultCard from './ResultCard';
+import ResultCard from '../../components/cards/ResultCard';
 import type { BookSearchResult } from '../../store/slices/searchSlice';
 import {
   selectSearchStatus,
