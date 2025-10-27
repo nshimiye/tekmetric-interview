@@ -37,7 +37,6 @@ vi.mock('./api/library', () => ({
 vi.mock('./api/publicMemos', () => ({
   loadPublicMemoStore: vi.fn(async () => ({})),
   savePublicMemoStore: vi.fn(async (store) => store),
-  normalizePublicMemoStore: vi.fn((store) => store),
   getPublicMemosForBook: vi.fn(async () => []),
 }));
 

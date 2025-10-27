@@ -10,7 +10,7 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 export default defineConfig(
   // Ignore build and generated files
   {
-    ignores: ['dist', 'build', 'coverage', 'node_modules'],
+    ignores: ['dist', 'build', 'coverage', 'node_modules', 'server'],
   },
 
   // Base + React + TypeScript setup

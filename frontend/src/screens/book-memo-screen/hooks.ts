@@ -2,7 +2,6 @@ import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../auth/AuthContext';
-import BOOKS from '../../data/books';
 import { selectLibrary } from '../../store/slices/librarySlice';
 import {
   ensureBookInLibrary,
@@ -41,11 +40,7 @@ export function useBookMemoScreen(bookId: string | undefined) {
 
   // Derived state
   const libraryEntry = bookId ? library?.[bookId] ?? null : null;
-  const catalogBook = useMemo(
-    () => BOOKS.find((book) => book.id === bookId) ?? null,
-    [bookId],
-  );
-  const selectedBook = libraryEntry?.book ?? catalogBook ?? null;
+  const selectedBook = libraryEntry?.book ?? null;
   const selectedBookId = selectedBook?.id ?? bookId ?? null;
   const savedMemos: UserMemo[] = Array.isArray(libraryEntry?.memos)
     ? (libraryEntry.memos as UserMemo[])

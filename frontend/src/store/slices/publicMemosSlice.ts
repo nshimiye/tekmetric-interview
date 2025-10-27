@@ -1,10 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import {
-  normalizePublicMemoStore,
-  type PublicMemo,
-  type PublicMemoStore,
-  type MemoAuthor,
-} from '../../api/publicMemos';
+import { type PublicMemo, type PublicMemoStore, type MemoAuthor } from '../../api/publicMemos';
 import { type RootState } from '../index';
 import { loadPublicMemos } from '../thunks/publicMemosThunks';
 
@@ -65,9 +60,9 @@ const arePublicStoresEqual = (a: PublicMemoStore = {}, b: PublicMemoStore = {}):
 };
 
 export interface MemoInput {
-  id?: string;
-  body?: string;
-  createdAt?: string;
+  id: string;
+  body: string;
+  createdAt: string;
 }
 
 const createPublicMemoEntry = (memo: MemoInput, author: MemoAuthor): PublicMemo | null => {
@@ -163,9 +158,8 @@ const publicMemosSlice = createSlice({
         [bookId]: nextList,
       };
 
-      const normalizedNext = normalizePublicMemoStore(nextStore);
-      if (!arePublicStoresEqual(state.store, normalizedNext)) {
-        state.store = normalizedNext;
+      if (!arePublicStoresEqual(state.store, nextStore)) {
+        state.store = nextStore;
       }
     },
     
@@ -212,9 +206,8 @@ const publicMemosSlice = createSlice({
         };
       }
 
-      const normalizedNext = normalizePublicMemoStore(nextStore);
-      if (!arePublicStoresEqual(state.store, normalizedNext)) {
-        state.store = normalizedNext;
+      if (!arePublicStoresEqual(state.store, nextStore)) {
+        state.store = nextStore;
       }
     },
   },
@@ -227,7 +220,7 @@ const publicMemosSlice = createSlice({
       .addCase(loadPublicMemos.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.error = null;
-        state.store = normalizePublicMemoStore(action.payload);
+        state.store = action.payload ?? {};
       })
       .addCase(loadPublicMemos.rejected, (state, action) => {
         state.status = 'failed';

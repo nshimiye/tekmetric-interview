@@ -39,7 +39,7 @@ const parseSessionResponse = async (response: Response): Promise<User | null> =>
     return null;
   }
 
-  return user as User;
+  return user as unknown as User;
 };
 
 export const loadUsers = async (): Promise<User[]> => {

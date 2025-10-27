@@ -7,7 +7,6 @@ import {
   BookCover,
   BookCoverImage,
 } from './BookMemoScreen.styles';
-import type { Book } from '../../../data/books';
 import type { LibraryBook } from '../../../store/slices/librarySlice';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +18,7 @@ const TruncatedDescription = styled(Typography)(() => ({
 }));
 
 interface BookDetailsCardProps {
-  book: Book | LibraryBook | null;
+  book: LibraryBook | null;
 }
 
 function BookDetailsCard({ book }: BookDetailsCardProps) {
@@ -28,13 +27,9 @@ function BookDetailsCard({ book }: BookDetailsCardProps) {
     if (!book) {
       return '';
     }
-    const libraryBook = book as LibraryBook;
+    const libraryBook = book;
     if (Array.isArray(libraryBook.authors) && libraryBook.authors.length > 0) {
       return libraryBook.authors.join(', ');
-    }
-    const catalogBook = book as Book;
-    if (catalogBook.author) {
-      return catalogBook.author;
     }
     return '';
   }, [book]);
