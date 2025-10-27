@@ -37,3 +37,31 @@ This is an open ended exercise for you to showcase what you know! We encourage y
 
 ### Submitting your coding exercise
 Once you have finished the coding exercise please create a PR into Tekmetric/interview
+
+---
+
+## Book Memo API
+
+This project now includes a complete REST API for managing book memos with the following features:
+
+### Features
+- **User Library Management**: Store books and personal memos for each user
+- **CRUD Operations**: Create, read, update, and delete memos
+- **Book Information**: Store and retrieve book metadata (title, authors, description, etc.)
+- **Public Memos**: Share memos with the community
+- **RESTful Design**: Clean and intuitive API endpoints
+
+### API Documentation
+See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for complete endpoint documentation.
+
+### Quick Start
+1. Build the project: `mvn clean install`
+2. Run the application: `mvn spring-boot:run`
+3. The API will be available at: `http://localhost:8080/api`
+
+### Architecture
+- **Controllers**: REST endpoints in `resource` package
+- **Services**: Business logic in `service` package
+- **Repositories**: Data access using Spring Data JPA
+- **Models**: JPA entities for Books, Memos, and Public Memos
+- **DTOs**: Data transfer objects for API requests/responses
