@@ -1,4 +1,4 @@
-import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
+import { API_BASE_URL, assertApiResponseOk, isPlainObject } from './client';
 
 export interface MemoAuthor {
   id: string | null;
@@ -55,12 +55,14 @@ const normalizeStore = (value: unknown): PublicMemoStore => {
           author && typeof author === 'object' && 'id' in author && 'name' in author
             ? {
                 id:
-                  typeof author.id === 'string' && author.id.trim().length > 0
-                    ? author.id.trim()
+                  typeof (author as Record<string, unknown>).id === 'string' &&
+                  (author as Record<string, unknown>).id.trim().length > 0
+                    ? (author as Record<string, unknown>).id.trim()
                     : null,
                 name:
-                  typeof author.name === 'string' && author.name.trim().length > 0
-                    ? author.name.trim()
+                  typeof (author as Record<string, unknown>).name === 'string' &&
+                  (author as Record<string, unknown>).name.trim().length > 0
+                    ? (author as Record<string, unknown>).name.trim()
                     : 'Anonymous reader',
               }
             : {

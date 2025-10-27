@@ -1,4 +1,4 @@
-import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
+import { API_BASE_URL, assertApiResponseOk, isPlainObject } from './client';
 
 export interface Memo {
   id: string;
@@ -24,7 +24,8 @@ export interface LibraryEntry {
 
 export type UserLibrary = Record<string, LibraryEntry>;
 
-const buildLibraryUrl = (userId: string): string => `${API_BASE_URL}/library/${encodeURIComponent(userId)}`;
+const buildLibraryUrl = (userId: string): string =>
+  `${API_BASE_URL}/library/${encodeURIComponent(userId)}`;
 
 const parseLibraryResponse = async (response: Response): Promise<UserLibrary> => {
   const payload = (await response.json()) as unknown;

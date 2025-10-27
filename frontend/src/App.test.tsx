@@ -11,7 +11,8 @@ import { initReactI18next } from 'react-i18next';
 import App from './App';
 import type { PublicUser } from './auth/AuthContext';
 import { useAuth } from './auth/AuthContext';
-import libraryReducer, { loadLibrary } from './store/slices/librarySlice';
+import libraryReducer from './store/slices/librarySlice';
+import { loadLibrary } from './store/thunks/libraryThunks';
 import publicMemosReducer from './store/slices/publicMemosSlice';
 import searchReducer from './store/slices/searchSlice';
 import theme from './styles/theme';
@@ -23,8 +24,8 @@ vi.mock('./auth/AuthContext', () => ({
   PublicUser: undefined,
 }));
 
-// Mock the library storage functions
-vi.mock('./library/libraryStorage', () => ({
+// Mock the library API functions
+vi.mock('./api/library', () => ({
   loadUserLibrary: vi.fn(async () => ({})),
   saveUserLibrary: vi.fn(async () => {}),
   deleteUserLibrary: vi.fn(async () => {}),
@@ -32,8 +33,8 @@ vi.mock('./library/libraryStorage', () => ({
   UserLibrary: undefined,
 }));
 
-// Mock the public memos storage
-vi.mock('./library/publicMemoStorage', () => ({
+// Mock the public memos API
+vi.mock('./api/publicMemos', () => ({
   loadPublicMemoStore: vi.fn(async () => ({})),
   savePublicMemoStore: vi.fn(async (store) => store),
   normalizePublicMemoStore: vi.fn((store) => store),

@@ -3,19 +3,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../auth/AuthContext';
 import BOOKS from '../../data/books';
+import { selectLibrary } from '../../store/slices/librarySlice';
 import {
-  selectLibrary,
-  ensureBookInLibrary as ensureBookInLibraryAction,
-  addMemo as addMemoAction,
-  updateMemo as updateMemoAction
-} from '../../store/slices/librarySlice';
+  ensureBookInLibrary,
+  addMemo,
+  updateMemo,
+} from '../../store/thunks/libraryThunks';
 import {
   selectPublicMemoStore,
-  publishMemo,
-  unpublishMemo,
 } from '../../store/slices/publicMemosSlice';
+import { publishMemo, unpublishMemo } from '../../store/thunks/publicMemosThunks';
 import type { AppDispatch } from '../../store';
-import type { Memo } from '../../library/libraryStorage';
+import type { Memo } from '../../api/library';
 import { createMemoId } from './utils/memoUtils';
 
 export interface UserMemo extends Memo {
@@ -85,7 +84,7 @@ export function useBookMemoScreen(bookId: string | undefined) {
 
   useEffect(() => {
     if (selectedBook) {
-      dispatch(ensureBookInLibraryAction(selectedBook));
+      dispatch(ensureBookInLibrary(selectedBook));
     }
   }, [selectedBook, dispatch]);
 
@@ -108,10 +107,10 @@ export function useBookMemoScreen(bookId: string | undefined) {
       isPublic: sharePublic,
     };
 
-    dispatch(addMemoAction({ book:selectedBook, memo:memoEntry }));
+    dispatch(addMemo({ book: selectedBook, memo: memoEntry }));
 
     if (sharePublic && selectedBookId) {
-      dispatch(publishMemo({ bookId: selectedBookId, memo:memoEntry, author:user }));
+      dispatch(publishMemo({ bookId: selectedBookId, memo: memoEntry, author: user }));
     }
 
     setDraftMemo('');
@@ -132,17 +131,16 @@ export function useBookMemoScreen(bookId: string | undefined) {
     if (!target || target.isPublic === nextValue) {
       return;
     }
-    
 
     const updatedMemo: UserMemo = {
       ...target,
       isPublic: nextValue,
     };
 
-    dispatch(updateMemoAction({ book:selectedBook, memoId, updatedMemo }));
+    dispatch(updateMemo({ book: selectedBook, memoId, updatedMemo }));
 
     if (nextValue) {
-      dispatch(publishMemo({ bookId: selectedBookId, memo:updatedMemo, author:user }));
+      dispatch(publishMemo({ bookId: selectedBookId, memo: updatedMemo, author: user }));
     } else {
       dispatch(unpublishMemo({ bookId: selectedBookId, memoId }));
     }
@@ -162,4 +160,3 @@ export function useBookMemoScreen(bookId: string | undefined) {
     handleToggleMemoPublic,
   };
 }
-

@@ -6,8 +6,8 @@ import Header from './header';
 import { useAuth } from '../auth/AuthContext';
 
 // Redux imports
-import { loadLibrary } from '../store/slices/librarySlice';
-import { loadPublicMemos } from '../store/slices/publicMemosSlice';
+import { loadLibrary } from '../store/thunks/libraryThunks';
+import { loadPublicMemos } from '../store/thunks/publicMemosThunks';
 import { clearSearch } from '../store/slices/searchSlice';
 import type { AppDispatch } from '../store';
 

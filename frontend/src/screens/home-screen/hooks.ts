@@ -3,16 +3,11 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import type { LibraryBook } from '../../store/slices/librarySlice';
-import {
-  selectLibrary,
-  ensureBookInLibrary as ensureBookInLibraryAction
-} from '../../store/slices/librarySlice';
-import type {
-  BookSearchResult} from '../../store/slices/searchSlice';
-import {
-  selectLastSearchQuery,
-  searchBooks
-} from '../../store/slices/searchSlice';
+import { selectLibrary } from '../../store/slices/librarySlice';
+import { ensureBookInLibrary as ensureBookInLibraryThunk } from '../../store/thunks/libraryThunks';
+import type { BookSearchResult } from '../../store/slices/searchSlice';
+import { selectLastSearchQuery } from '../../store/slices/searchSlice';
+import { searchBooks } from '../../store/thunks/searchThunks';
 import type { AppDispatch } from '../../store';
 
 export function useHomeScreen() {
@@ -46,7 +41,7 @@ export function useHomeScreen() {
       return;
     }
 
-    dispatch(ensureBookInLibraryAction(book));
+    dispatch(ensureBookInLibraryThunk(book));
     const targetId = book.id;
     if (!targetId) {
       return;
@@ -60,7 +55,7 @@ export function useHomeScreen() {
   };
 
   const handleAddToShelfFromSearch = (book: BookSearchResult) => {
-    dispatch(ensureBookInLibraryAction(book));
+    dispatch(ensureBookInLibraryThunk(book));
   };
 
   const handleWelcomeSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,4 +92,3 @@ export function useHomeScreen() {
     handleWelcomeSearchSubmit,
   };
 }
-

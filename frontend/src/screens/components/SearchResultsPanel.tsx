@@ -10,8 +10,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import ResultCard from './ResultCard';
-import type {
-  BookSearchResult} from '../../store/slices/searchSlice';
+import type { BookSearchResult } from '../../store/slices/searchSlice';
 import {
   selectSearchStatus,
   selectSearchResults,
@@ -19,9 +18,8 @@ import {
   selectLastSearchQuery,
   selectLastResultFromCache,
   clearSearch,
-  clearSearchCache,
-  searchBooks,
 } from '../../store/slices/searchSlice';
+import { clearSearchCache, searchBooks } from '../../store/thunks/searchThunks';
 import type { AppDispatch } from '../../store';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({

@@ -1,13 +1,14 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import {
-  loadPublicMemoStore,
   normalizePublicMemoStore,
-  savePublicMemoStore,
   type PublicMemo,
   type PublicMemoStore,
   type MemoAuthor,
-} from '../../library/publicMemoStorage';
+} from '../../api/publicMemos';
 import { type RootState } from '../index';
+import { loadPublicMemos } from '../thunks/publicMemosThunks';
+
+export type { PublicMemoStore } from '../../api/publicMemos';
 
 const arePublicMemoListsEqual = (a: PublicMemo[] = [], b: PublicMemo[] = []): boolean => {
   if (a === b) {
@@ -63,7 +64,7 @@ const arePublicStoresEqual = (a: PublicMemoStore = {}, b: PublicMemoStore = {}):
   });
 };
 
-interface MemoInput {
+export interface MemoInput {
   id?: string;
   body?: string;
   createdAt?: string;
@@ -121,25 +122,6 @@ const initialState: PublicMemosState = {
   error: null,
 };
 
-export const loadPublicMemos = createAsyncThunk<
-  PublicMemoStore,
-  void,
-  { rejectValue: string }
->('publicMemos/load', async (_, { rejectWithValue }) => {
-  try {
-    return await loadPublicMemoStore();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to load public memos';
-    return rejectWithValue(message);
-  }
-});
-
-const persistPublicMemoStore = (store: PublicMemoStore): void => {
-  void savePublicMemoStore(store).catch((error) => {
-    console.error('Failed to persist public memo store', error);
-  });
-};
-
 const publicMemosSlice = createSlice({
   name: 'publicMemos',
   initialState,
@@ -184,7 +166,6 @@ const publicMemosSlice = createSlice({
       const normalizedNext = normalizePublicMemoStore(nextStore);
       if (!arePublicStoresEqual(state.store, normalizedNext)) {
         state.store = normalizedNext;
-        persistPublicMemoStore(normalizedNext);
       }
     },
     
@@ -234,7 +215,6 @@ const publicMemosSlice = createSlice({
       const normalizedNext = normalizePublicMemoStore(nextStore);
       if (!arePublicStoresEqual(state.store, normalizedNext)) {
         state.store = normalizedNext;
-        persistPublicMemoStore(normalizedNext);
       }
     },
   },
@@ -257,10 +237,12 @@ const publicMemosSlice = createSlice({
   },
 });
 
-export const {
+const { publishMemo, unpublishMemo } = publicMemosSlice.actions;
+
+export const publicMemosInternalActions = {
   publishMemo,
   unpublishMemo,
-} = publicMemosSlice.actions;
+};
 
 export default publicMemosSlice.reducer;
 

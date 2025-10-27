@@ -6,7 +6,7 @@ import {
   MemoListItem,
   MemoBody,
 } from './BookMemoScreen.styles';
-import type { PublicMemo } from '../../../library/publicMemoStorage';
+import type { PublicMemo } from '../../../api/publicMemos';
 import { useTranslation } from 'react-i18next';
 
 interface CommunityMemosSectionProps {
@@ -76,4 +76,3 @@ function CommunityMemosSection({ memos }: CommunityMemosSectionProps) {
 }
 
 export default CommunityMemosSection;
-

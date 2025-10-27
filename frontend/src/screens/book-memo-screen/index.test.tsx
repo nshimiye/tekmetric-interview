@@ -6,11 +6,12 @@ import { ThemeProvider } from '@mui/material/styles';
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, it, expect, vi } from 'vitest';
 import BookMemoScreen from './index';
-import type { PublicUser} from '../../auth/AuthContext';
+import type { PublicUser } from '../../auth/AuthContext';
 import { useAuth } from '../../auth/AuthContext';
-import libraryReducer, { loadLibrary } from '../../store/slices/librarySlice';
+import libraryReducer from '../../store/slices/librarySlice';
 import publicMemosReducer from '../../store/slices/publicMemosSlice';
 import searchReducer from '../../store/slices/searchSlice';
+import { loadLibrary } from '../../store/thunks/libraryThunks';
 import theme from '../../styles/theme';
 
 // Mock the auth hook
@@ -19,8 +20,8 @@ vi.mock('../../auth/AuthContext', () => ({
   PublicUser: undefined,
 }));
 
-// Mock the library storage functions
-vi.mock('../../library/libraryStorage', () => ({
+// Mock the library API functions
+vi.mock('../../api/library', () => ({
   loadUserLibrary: vi.fn(async () => ({})),
   saveUserLibrary: vi.fn(async () => {}),
   deleteUserLibrary: vi.fn(async () => {}),
@@ -28,7 +29,7 @@ vi.mock('../../library/libraryStorage', () => ({
   UserLibrary: undefined,
 }));
 
-vi.mock('../../library/publicMemoStorage', () => ({
+vi.mock('../../api/publicMemos', () => ({
   loadPublicMemoStore: vi.fn(async () => ({})),
   savePublicMemoStore: vi.fn(async (store) => store),
   normalizePublicMemoStore: vi.fn((store) => store),
