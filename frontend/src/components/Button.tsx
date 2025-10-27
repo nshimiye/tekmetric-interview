@@ -1,5 +1,7 @@
-import { forwardRef, ReactNode } from 'react';
-import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button';
+import type { ReactNode } from 'react';
+import { forwardRef } from 'react';
+import type { ButtonProps as MuiButtonProps } from '@mui/material/Button';
+import MuiButton from '@mui/material/Button';
 
 const variantToColor = {
   primary: 'primary',
@@ -31,7 +33,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {children}
     </MuiButton>
   );
-});
+}) as typeof MuiButton;
 
 export default Button;
 

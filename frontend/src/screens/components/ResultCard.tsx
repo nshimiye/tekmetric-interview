@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '../../components/Button';
-import { BookSearchResult } from '../../store/slices/searchSlice';
+import type { BookSearchResult } from '../../store/slices/searchSlice';
 
 const StyledResultCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),

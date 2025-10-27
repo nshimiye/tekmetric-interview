@@ -50,7 +50,7 @@ const normalizeStore = (value: unknown): PublicMemoStore => {
         }
 
         const normalizedAuthor: MemoAuthor =
-          author && typeof author === 'object'
+          author && typeof author === 'object' && 'id' in author && 'name' in author
             ? {
                 id:
                   typeof author.id === 'string' && author.id.trim().length > 0

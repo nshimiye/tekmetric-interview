@@ -1,4 +1,4 @@
-const isLocalStorageAvailable = (): boolean => {
+export const isLocalStorageAvailable = (): boolean => {
   try {
     if (typeof window === 'undefined' || !window.localStorage) {
       return false;
@@ -13,7 +13,7 @@ const isLocalStorageAvailable = (): boolean => {
   }
 };
 
-const safeRead = <T>(key: string, fallback: T): T => {
+export const safeRead = <T>(key: string, fallback: T): T => {
   if (!isLocalStorageAvailable()) {
     return fallback;
   }
@@ -30,7 +30,7 @@ const safeRead = <T>(key: string, fallback: T): T => {
   }
 };
 
-const safeWrite = (key: string, value: unknown): void => {
+export const safeWrite = (key: string, value: unknown): void => {
   if (!isLocalStorageAvailable()) {
     return;
   }
@@ -42,7 +42,7 @@ const safeWrite = (key: string, value: unknown): void => {
   }
 };
 
-const safeRemove = (key: string): void => {
+export const safeRemove = (key: string): void => {
   if (!isLocalStorageAvailable()) {
     return;
   }
@@ -54,5 +54,4 @@ const safeRemove = (key: string): void => {
   }
 };
 
-export { isLocalStorageAvailable, safeRead, safeRemove, safeWrite };
 

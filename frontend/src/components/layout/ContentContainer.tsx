@@ -1,5 +1,7 @@
-import { forwardRef, ReactNode } from 'react';
-import Box, { BoxProps } from '@mui/material/Box';
+import type { ReactNode } from 'react';
+import { forwardRef } from 'react';
+import type { BoxProps } from '@mui/material/Box';
+import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
 
 interface ContentContainerProps extends BoxProps {

@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../index';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { RootState } from '../index';
 import { loadSearchCache, saveSearchCache, clearSearchCacheStorage } from '../../storage/searchCacheStorage';
 
 const MAX_RESULTS = 7;

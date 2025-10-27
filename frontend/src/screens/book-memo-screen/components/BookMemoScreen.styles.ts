@@ -4,7 +4,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '../../../components/Button';
-import { STATUS_VARIANTS, StatusKey } from '../utils/memoUtils';
+import type { StatusKey } from '../utils/memoUtils';
+import { STATUS_VARIANTS } from '../utils/memoUtils';
 
 
 export const BookInfoCard = styled(Paper)(({ theme }) => ({

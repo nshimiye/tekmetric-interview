@@ -1,8 +1,9 @@
-import { ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
 import Stack from '@mui/material/Stack';
 import Input from '../../../components/Input';
 import { MemoCard, ResponsiveButton, StatusText } from './BookMemoScreen.styles';
-import { STATUS_VARIANTS, StatusKey } from '../utils/memoUtils';
+import type { StatusKey } from '../utils/memoUtils';
+import { STATUS_VARIANTS } from '../utils/memoUtils';
 
 interface MemoEditorProps {
   draftMemo: string;

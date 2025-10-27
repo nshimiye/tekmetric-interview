@@ -1,21 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { PublicUser, useAuth } from '../../auth/AuthContext';
-import BOOKS, { Book } from '../../data/books';
+import type { PublicUser} from '../../auth/AuthContext';
+import { useAuth } from '../../auth/AuthContext';
+import type { Book } from '../../data/books';
+import BOOKS from '../../data/books';
+import type {
+  LibraryBook} from '../../store/slices/librarySlice';
 import {
   selectLibrary,
   ensureBookInLibrary as ensureBookInLibraryAction,
   addMemo as addMemoAction,
-  updateMemo as updateMemoAction,
-  LibraryBook,
+  updateMemo as updateMemoAction
 } from '../../store/slices/librarySlice';
 import {
   selectPublicMemoStore,
   publishMemo,
   unpublishMemo,
 } from '../../store/slices/publicMemosSlice';
-import { AppDispatch } from '../../store';
-import { Memo } from '../../library/libraryStorage';
+import type { AppDispatch } from '../../store';
+import type { Memo } from '../../library/libraryStorage';
 import { createMemoId } from './utils/memoUtils';
 
 export interface UserMemo extends Memo {

@@ -26,7 +26,7 @@ export const LogoLink = styled(Typography)(({ theme }) => ({
   '&:hover': {
     color: theme.palette.primary.main,
   },
-}));
+})) as typeof Typography;
 
 export const SearchFormWrapper = styled('div')(({ theme }) => ({
   width: '100%',

@@ -1,4 +1,5 @@
-import { createTheme, responsiveFontSizes, Theme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
 // Central source of truth for product colors. Always try to map new UI to an
 // existing token first; add new ones only after aligning with design so we keep

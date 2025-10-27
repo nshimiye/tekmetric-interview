@@ -1,4 +1,4 @@
-import { BookSearchResult } from '../store/slices/searchSlice';
+import type { BookSearchResult } from '../store/slices/searchSlice';
 
 const SEARCH_CACHE_KEY_PREFIX = 'bookMemo_searchCache';
 

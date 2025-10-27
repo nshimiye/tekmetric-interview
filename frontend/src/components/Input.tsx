@@ -1,8 +1,10 @@
-import { forwardRef, TextareaHTMLAttributes } from 'react';
+import type { TextareaHTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormLabel from '@mui/material/FormLabel';
-import OutlinedInput, { OutlinedInputProps } from '@mui/material/OutlinedInput';
+import type { OutlinedInputProps } from '@mui/material/OutlinedInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 
 const StyledTextarea = styled('textarea')(({ theme }) => ({
@@ -36,15 +38,7 @@ interface InputBaseProps {
   name?: string;
 }
 
-interface SingleLineInputProps extends InputBaseProps, Omit<OutlinedInputProps, 'multiline'> {
-  multiline?: false;
-}
-
-interface MultiLineInputProps extends InputBaseProps, TextareaHTMLAttributes<HTMLTextAreaElement> {
-  multiline: true;
-}
-
-type InputProps = SingleLineInputProps | MultiLineInputProps;
+type InputProps = InputBaseProps & TextareaHTMLAttributes<HTMLTextAreaElement> & { multiline?: boolean };
 
 const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(function Input(
   { label, helperText, multiline = false, id, ...props },

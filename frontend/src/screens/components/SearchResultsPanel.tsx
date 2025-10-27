@@ -10,8 +10,9 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '../../components/Button';
 import ResultCard from './ResultCard';
+import type {
+  BookSearchResult} from '../../store/slices/searchSlice';
 import {
-  BookSearchResult,
   selectSearchStatus,
   selectSearchResults,
   selectSearchError,
@@ -21,7 +22,7 @@ import {
   clearSearchCache,
   searchBooks,
 } from '../../store/slices/searchSlice';
-import { AppDispatch } from '../../store';
+import type { AppDispatch } from '../../store';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius * 3,

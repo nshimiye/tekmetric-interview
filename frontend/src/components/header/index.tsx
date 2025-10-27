@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack';
 import Button from '../Button';
 import LanguageSwitcher from '../LanguageSwitcher';
 import BookSearchForm from '../BookSearchForm';
-import { PublicUser } from '../../auth/AuthContext';
+import type { PublicUser } from '../../auth/AuthContext';
 import { useSearch } from './hooks';
 import UserMenu from './UserMenu';
 import {

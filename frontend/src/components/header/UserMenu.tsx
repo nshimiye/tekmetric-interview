@@ -1,4 +1,5 @@
-import { useState, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -9,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LanguageSwitcher from '../LanguageSwitcher';
-import { PublicUser } from '../../auth/AuthContext';
+import type { PublicUser } from '../../auth/AuthContext';
 import {
   UserAvatar,
   StyledMenu,

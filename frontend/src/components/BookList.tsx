@@ -5,7 +5,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import { Book } from '../data/books';
+import type { Book } from '../data/books';
 
 const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
   flexDirection: 'column',
@@ -26,7 +26,7 @@ const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
     border: `1px solid ${theme.custom.designTokens.borderCard}`,
     backgroundColor: theme.palette.background.paper,
   },
-}));
+})) as typeof ListItemButton;
 
 const StyledListItemText = styled(ListItemText)(() => ({
   margin: 0,
@@ -36,7 +36,7 @@ const BookListContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(2),
-}));
+})) as typeof Box;
 
 const StyledList = styled(List)(({ theme }) => ({
   display: 'flex',
@@ -46,7 +46,7 @@ const StyledList = styled(List)(({ theme }) => ({
 
 const ListItem = styled(Box)(() => ({
   listStyle: 'none',
-}));
+})) as typeof Box;
 
 interface BookListItemProps {
   book: Book;

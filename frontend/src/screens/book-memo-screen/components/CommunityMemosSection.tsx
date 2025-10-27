@@ -6,7 +6,7 @@ import {
   MemoListItem,
   MemoBody,
 } from './BookMemoScreen.styles';
-import { PublicMemo } from '../../../library/publicMemoStorage';
+import type { PublicMemo } from '../../../library/publicMemoStorage';
 
 interface CommunityMemosSectionProps {
   memos: PublicMemo[];

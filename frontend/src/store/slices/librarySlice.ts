@@ -1,22 +1,10 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { loadUserLibrary, saveUserLibrary, Memo, UserLibrary } from '../../library/libraryStorage';
-import { RootState } from '../index';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+import type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
+import { loadUserLibrary, saveUserLibrary } from '../../library/libraryStorage';
+import type { RootState } from '../index';
 
-export interface LibraryBook {
-  id: string;
-  title: string;
-  description: string;
-  authors: string[];
-  thumbnail: string | null;
-  infoLink: string | null;
-  publishedDate: string | null;
-  source: string | null;
-}
-
-export interface LibraryEntry {
-  book: LibraryBook;
-  memos: Memo[];
-}
+export type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
 
 export type LibraryItems = Record<string, LibraryEntry>;
 
@@ -140,7 +128,7 @@ const librarySlice = createSlice({
 
       const storedLibrary = loadUserLibrary(userId);
       if (storedLibrary && typeof storedLibrary === 'object') {
-        state.items = storedLibrary as LibraryItems;
+        state.items = storedLibrary;
       } else {
         state.items = {};
       }
@@ -180,7 +168,7 @@ const librarySlice = createSlice({
           };
 
       state.items[normalized.id] = nextEntry;
-      saveUserLibrary(state.userId, state.items as UserLibrary);
+      saveUserLibrary(state.userId, state.items);
     },
     
     addMemo: (state, action: PayloadAction<{ book: BookInput; memo: Memo }>) => {
@@ -210,7 +198,7 @@ const librarySlice = createSlice({
         memos: [...currentMemos, memo],
       };
 
-      saveUserLibrary(state.userId, state.items as UserLibrary);
+      saveUserLibrary(state.userId, state.items);
     },
 
     updateMemo: (state, action: PayloadAction<{ book: BookInput; memoId: string; updatedMemo: Memo }>) => {
@@ -239,7 +227,7 @@ const librarySlice = createSlice({
         memos: nextMemos,
       };
 
-      saveUserLibrary(state.userId, state.items as UserLibrary);
+      saveUserLibrary(state.userId, state.items);
     },
   },
 });

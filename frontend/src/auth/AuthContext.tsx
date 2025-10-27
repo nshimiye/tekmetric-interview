@@ -1,11 +1,11 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import {
   clearCurrentUser,
   loadCurrentUser,
   loadUsers,
   saveCurrentUser,
   saveUsers,
-  User,
+  type User,
 } from './authStorage';
 
 export interface PublicUser {

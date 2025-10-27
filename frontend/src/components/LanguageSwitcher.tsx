@@ -1,4 +1,5 @@
-import { useState, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';

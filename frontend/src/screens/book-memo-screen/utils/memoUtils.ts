@@ -1,4 +1,4 @@
-import { Theme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 export const createMemoId = (): string =>
   `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;

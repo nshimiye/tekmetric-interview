@@ -14,7 +14,7 @@ import {
   setCurrentUser,
   clearSearch,
 } from '../store/slices/searchSlice';
-import { AppDispatch } from '../store';
+import type { AppDispatch } from '../store';
 
 // Styled Components
 const RootContainer = styled('div')(({ theme }) => ({

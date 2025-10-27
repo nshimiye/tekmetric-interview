@@ -1,13 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import {
   loadPublicMemoStore,
   normalizePublicMemoStore,
   savePublicMemoStore,
-  PublicMemo,
-  PublicMemoStore,
-  MemoAuthor,
+  type PublicMemo,
+  type PublicMemoStore,
+  type MemoAuthor,
 } from '../../library/publicMemoStorage';
-import { RootState } from '../index';
+import { type RootState } from '../index';
 
 const arePublicMemoListsEqual = (a: PublicMemo[] = [], b: PublicMemo[] = []): boolean => {
   if (a === b) {

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, FormEvent } from 'react';
+import type { FormEvent } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   searchBooks,
@@ -6,7 +7,7 @@ import {
   clearSearch as clearSearchAction,
   selectSearchTerm,
 } from '../../store/slices/searchSlice';
-import { AppDispatch } from '../../store';
+import type { AppDispatch } from '../../store';
 
 export function useSearch() {
   const dispatch = useDispatch<AppDispatch>();

@@ -1,6 +1,3 @@
-// eslint.config.js
-// @ts-check
-
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
@@ -21,23 +18,12 @@ export default defineConfig(
     files: ['**/*.{js,jsx,ts,tsx}'],
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
+      tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       react.configs.flat.recommended,
       react.configs.flat['jsx-runtime'],
       jsxA11y.flatConfigs.recommended,
     ],
-    languageOptions: {
-      parser: tseslint.parser,
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: { jsx: true },
-      },
-      globals: { ...globals.browser, ...globals.node },
-    },
     plugins: {
       react,
       'react-refresh': reactRefresh,
@@ -45,6 +31,9 @@ export default defineConfig(
     rules: {
       // Vite + Fast Refresh
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+
+      // TypeScript best practices
+      "@typescript-eslint/consistent-type-imports": "error",
 
       // React best practices
       'react/jsx-no-target-blank': ['warn', { allowReferrer: true }],

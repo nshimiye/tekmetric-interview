@@ -1,17 +1,19 @@
-import { useMemo, useCallback, useState, FormEvent } from 'react';
+import type { FormEvent } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import type { LibraryBook } from '../../store/slices/librarySlice';
 import {
   selectLibrary,
-  ensureBookInLibrary as ensureBookInLibraryAction,
-  LibraryBook,
+  ensureBookInLibrary as ensureBookInLibraryAction
 } from '../../store/slices/librarySlice';
+import type {
+  BookSearchResult} from '../../store/slices/searchSlice';
 import {
   selectLastSearchQuery,
-  searchBooks,
-  BookSearchResult,
+  searchBooks
 } from '../../store/slices/searchSlice';
-import { AppDispatch } from '../../store';
+import type { AppDispatch } from '../../store';
 
 export function useHomeScreen() {
   const navigate = useNavigate();
