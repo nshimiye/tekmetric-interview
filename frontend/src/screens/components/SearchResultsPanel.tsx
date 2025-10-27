@@ -279,12 +279,17 @@ function SearchResultsPanel({
   };
 
   const handleClearCache = () => {
-    // Clear the cache first
-    dispatch(clearSearchCache());
-    // Then re-run the search with the same query to get fresh results
-    if (lastQuery && lastQuery.trim().length > 0) {
-      dispatch(searchBooks(lastQuery));
-    }
+    const normalizedQuery = lastQuery?.trim();
+    void dispatch(clearSearchCache())
+      .unwrap()
+      .catch((error) => {
+        console.error('Failed to clear search cache', error);
+      })
+      .finally(() => {
+        if (normalizedQuery && normalizedQuery.length > 0) {
+          dispatch(searchBooks(lastQuery));
+        }
+      });
   };
 
   if (status === 'idle') {
@@ -414,4 +419,3 @@ function SearchResultsPanel({
 }
 
 export default SearchResultsPanel;
-
