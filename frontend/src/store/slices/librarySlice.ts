@@ -1,5 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
 import { loadUserLibrary, saveUserLibrary } from '../../library/libraryStorage';
 import type { RootState } from '../index';
@@ -7,6 +7,18 @@ import type { RootState } from '../index';
 export type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
 
 export type LibraryItems = Record<string, LibraryEntry>;
+
+type LibraryStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
+
+const persistLibrary = (userId: string | null, library: LibraryItems): void => {
+  if (!userId) {
+    return;
+  }
+
+  void saveUserLibrary(userId, library).catch((error) => {
+    console.error('Failed to persist user library', error);
+  });
+};
 
 const normalizeAuthors = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -106,37 +118,44 @@ const areBooksEqual = (a: LibraryBook, b: LibraryBook): boolean => {
 interface LibraryState {
   items: LibraryItems;
   userId: string | null;
+  status: LibraryStatus;
+  error: string | null;
 }
 
 const initialState: LibraryState = {
   items: {},
   userId: null,
+  status: 'idle',
+  error: null,
 };
+
+export const loadLibrary = createAsyncThunk<
+  { userId: string | null; library: LibraryItems },
+  { userId: string | null },
+  { rejectValue: string }
+>('library/load', async ({ userId }, { rejectWithValue }) => {
+  if (!userId) {
+    return { userId: null, library: {} };
+  }
+
+  try {
+    const library = await loadUserLibrary(userId);
+    return { userId, library };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to load user library';
+    return rejectWithValue(message);
+  }
+});
 
 const librarySlice = createSlice({
   name: 'library',
   initialState,
   reducers: {
-    loadLibrary: (state, action: PayloadAction<{ userId: string }>) => {
-      const { userId } = action.payload;
-      state.userId = userId;
-      
-      if (!userId) {
-        state.items = {};
-        return;
-      }
-
-      const storedLibrary = loadUserLibrary(userId);
-      if (storedLibrary && typeof storedLibrary === 'object') {
-        state.items = storedLibrary;
-      } else {
-        state.items = {};
-      }
-    },
-    
     clearLibrary: (state) => {
       state.items = {};
       state.userId = null;
+      state.status = 'idle';
+      state.error = null;
     },
     
     ensureBookInLibrary: (state, action: PayloadAction<BookInput>) => {
@@ -168,7 +187,7 @@ const librarySlice = createSlice({
           };
 
       state.items[normalized.id] = nextEntry;
-      saveUserLibrary(state.userId, state.items);
+      persistLibrary(state.userId, state.items);
     },
     
     addMemo: (state, action: PayloadAction<{ book: BookInput; memo: Memo }>) => {
@@ -198,9 +217,9 @@ const librarySlice = createSlice({
         memos: [...currentMemos, memo],
       };
 
-      saveUserLibrary(state.userId, state.items);
+      persistLibrary(state.userId, state.items);
     },
-
+    
     updateMemo: (state, action: PayloadAction<{ book: BookInput; memoId: string; updatedMemo: Memo }>) => {
       if (!state.userId) {
         return;
@@ -227,13 +246,32 @@ const librarySlice = createSlice({
         memos: nextMemos,
       };
 
-      saveUserLibrary(state.userId, state.items);
+      persistLibrary(state.userId, state.items);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadLibrary.pending, (state, action) => {
+        state.status = 'loading';
+        state.error = null;
+        state.userId = action.meta.arg.userId ?? null;
+      })
+      .addCase(loadLibrary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.error = null;
+        state.userId = action.payload.userId;
+        state.items = action.payload.library ?? {};
+      })
+      .addCase(loadLibrary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload ?? action.error.message ?? 'Failed to load user library';
+        state.userId = action.meta.arg.userId ?? null;
+        state.items = {};
+      });
   },
 });
 
 export const {
-  loadLibrary,
   clearLibrary,
   ensureBookInLibrary,
   addMemo,
@@ -245,4 +283,5 @@ export default librarySlice.reducer;
 // Selectors
 export const selectLibrary = (state: RootState) => state.library.items;
 export const selectLibraryUserId = (state: RootState) => state.library.userId;
-
+export const selectLibraryStatus = (state: RootState) => state.library.status;
+export const selectLibraryError = (state: RootState) => state.library.error;

@@ -1,4 +1,4 @@
-import { safeRead, safeRemove, safeWrite } from '../storage/localStorageUtils';
+import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
 
 export interface MemoAuthor {
   id: string | null;
@@ -15,7 +15,9 @@ export interface PublicMemo {
 
 export type PublicMemoStore = Record<string, PublicMemo[]>;
 
-const PUBLIC_MEMOS_KEY = 'bookmemo_public_memos';
+const PUBLIC_MEMOS_URL = `${API_BASE_URL}/public-memos`;
+const PUBLIC_MEMOS_FOR_BOOK_URL = (bookId: string): string =>
+  `${PUBLIC_MEMOS_URL}/${encodeURIComponent(bookId)}`;
 
 const normalizeStore = (value: unknown): PublicMemoStore => {
   if (!value || typeof value !== 'object') {
@@ -88,32 +90,49 @@ const normalizeStore = (value: unknown): PublicMemoStore => {
   }, {});
 };
 
-export const loadPublicMemoStore = (): PublicMemoStore => {
-  const stored = safeRead<unknown>(PUBLIC_MEMOS_KEY, {});
-  return normalizeStore(stored);
+export const loadPublicMemoStore = async (): Promise<PublicMemoStore> => {
+  const response = await fetch(PUBLIC_MEMOS_URL);
+  await assertApiResponseOk(response);
+  const payload = (await response.json()) as unknown;
+  if (!isPlainObject(payload)) {
+    return {};
+  }
+
+  return normalizeStore(payload.store);
 };
 
 export const normalizePublicMemoStore = normalizeStore;
 
-const persistStore = (store: PublicMemoStore): PublicMemoStore => {
+export const savePublicMemoStore = async (store: PublicMemoStore): Promise<PublicMemoStore> => {
   const normalized = normalizeStore(store);
-  if (Object.keys(normalized).length === 0) {
-    safeRemove(PUBLIC_MEMOS_KEY);
-    return normalized;
-  }
+  const response = await fetch(PUBLIC_MEMOS_URL, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ store: normalized }),
+  });
 
-  safeWrite(PUBLIC_MEMOS_KEY, normalized);
+  await assertApiResponseOk(response);
   return normalized;
 };
 
-export const savePublicMemoStore = (store: PublicMemoStore): PublicMemoStore => persistStore(store);
-
-export const getPublicMemosForBook = (bookId: string): PublicMemo[] => {
+export const getPublicMemosForBook = async (bookId: string): Promise<PublicMemo[]> => {
   if (!bookId) {
     return [];
   }
 
-  const store = loadPublicMemoStore();
-  return Array.isArray(store[bookId]) ? store[bookId] : [];
-};
+  const response = await fetch(PUBLIC_MEMOS_FOR_BOOK_URL(bookId));
+  if (response.status === 404) {
+    return [];
+  }
 
+  await assertApiResponseOk(response);
+  const payload = (await response.json()) as unknown;
+  if (!isPlainObject(payload) || !Array.isArray(payload.memos)) {
+    return [];
+  }
+
+  const normalizedStore = normalizeStore({ [bookId]: payload.memos });
+  return Array.isArray(normalizedStore[bookId]) ? normalizedStore[bookId] : [];
+};

@@ -2,6 +2,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 import { loadSearchCache, saveSearchCache, clearSearchCacheStorage } from '../../storage/searchCacheStorage';
+import { loadLibrary, clearLibrary } from './librarySlice';
 
 const MAX_RESULTS = 7;
 
@@ -128,7 +129,7 @@ const initialState: SearchState = {
   results: [],
   error: null,
   lastQuery: '',
-  cache: {}, // Will be loaded after user is set
+  cache: loadSearchCache(null),
   lastResultFromCache: false,
   currentUserId: null,
 };
@@ -139,12 +140,6 @@ const searchSlice = createSlice({
   reducers: {
     setSearchTerm: (state, action: PayloadAction<string>) => {
       state.term = action.payload;
-    },
-    
-    setCurrentUser: (state, action: PayloadAction<string | null>) => {
-      state.currentUserId = action.payload;
-      // Load cache for this user
-      state.cache = loadSearchCache(action.payload);
     },
     
     clearSearch: (state) => {
@@ -204,13 +199,31 @@ const searchSlice = createSlice({
         state.status = 'error';
         state.error = action.error.message ?? 'Something went wrong while searching for books.';
         state.lastResultFromCache = false;
+      })
+      .addCase(loadLibrary.pending, (state, action) => {
+        const nextUserId = action.meta.arg.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = loadSearchCache(nextUserId);
+      })
+      .addCase(loadLibrary.fulfilled, (state, action) => {
+        const nextUserId = action.payload.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = loadSearchCache(nextUserId);
+      })
+      .addCase(loadLibrary.rejected, (state, action) => {
+        const nextUserId = action.meta.arg.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = loadSearchCache(nextUserId);
+      })
+      .addCase(clearLibrary, (state) => {
+        state.currentUserId = null;
+        state.cache = loadSearchCache(null);
       });
   },
 });
 
 export const {
   setSearchTerm,
-  setCurrentUser,
   clearSearch,
   resetSearchState,
   clearSearchCache,
@@ -226,4 +239,3 @@ export const selectSearchError = (state: RootState) => state.search.error;
 export const selectLastSearchQuery = (state: RootState) => state.search.lastQuery;
 export const selectSearchCacheSize = (state: RootState) => Object.keys(state.search.cache).length;
 export const selectLastResultFromCache = (state: RootState) => state.search.lastResultFromCache;
-

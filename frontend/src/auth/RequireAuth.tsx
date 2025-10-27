@@ -2,9 +2,13 @@ import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-do
 import { useAuth } from './AuthContext';
 
 function RequireAuth() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const outletContext = useOutletContext();
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -20,4 +24,3 @@ function RequireAuth() {
 }
 
 export default RequireAuth;
-

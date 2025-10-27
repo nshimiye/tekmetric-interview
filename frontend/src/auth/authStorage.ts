@@ -1,4 +1,4 @@
-import { safeRead, safeRemove, safeWrite } from '../storage/localStorageUtils';
+import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
 
 export interface User {
   id: string;
@@ -7,27 +7,95 @@ export interface User {
   password: string;
 }
 
-const USERS_KEY = 'bookmemo_auth_users';
-const SESSION_KEY = 'bookmemo_auth_current_user';
+const usersUrl = (): string => `${API_BASE_URL}/auth/users`;
+const sessionUrl = (): string => `${API_BASE_URL}/auth/session`;
 
-export const loadUsers = (): User[] => safeRead<User[]>(USERS_KEY, []);
+const parseUsersResponse = async (response: Response): Promise<User[]> => {
+  const payload = (await response.json()) as unknown;
+  if (!isPlainObject(payload)) {
+    return [];
+  }
 
-export const saveUsers = (users: User[]): void => {
-  safeWrite(USERS_KEY, users);
+  const candidates = payload.users;
+  if (!Array.isArray(candidates)) {
+    return [];
+  }
+
+  return candidates as User[];
 };
 
-export const loadCurrentUser = (): User | null => safeRead<User | null>(SESSION_KEY, null);
+const parseSessionResponse = async (response: Response): Promise<User | null> => {
+  const payload = (await response.json()) as unknown;
+  if (!isPlainObject(payload)) {
+    return null;
+  }
 
-export const saveCurrentUser = (user: User | null): void => {
+  const { user } = payload;
+  if (user === null) {
+    return null;
+  }
+
+  if (!isPlainObject(user)) {
+    return null;
+  }
+
+  return user as User;
+};
+
+export const loadUsers = async (): Promise<User[]> => {
+  const response = await fetch(usersUrl());
+  await assertApiResponseOk(response);
+  return parseUsersResponse(response);
+};
+
+export const saveUsers = async (users: User[]): Promise<void> => {
+  const response = await fetch(usersUrl(), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ users }),
+  });
+
+  await assertApiResponseOk(response);
+};
+
+export const loadCurrentUser = async (): Promise<User | null> => {
+  const response = await fetch(sessionUrl());
+  await assertApiResponseOk(response);
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return parseSessionResponse(response);
+};
+
+export const saveCurrentUser = async (user: User | null): Promise<void> => {
   if (!user) {
-    safeRemove(SESSION_KEY);
+    await clearCurrentUser();
     return;
   }
 
-  safeWrite(SESSION_KEY, user);
+  const response = await fetch(sessionUrl(), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ user }),
+  });
+
+  await assertApiResponseOk(response);
 };
 
-export const clearCurrentUser = (): void => {
-  safeRemove(SESSION_KEY);
-};
+export const clearCurrentUser = async (): Promise<void> => {
+  const response = await fetch(sessionUrl(), {
+    method: 'DELETE',
+  });
 
+  if (response.status === 204) {
+    return;
+  }
+
+  await assertApiResponseOk(response);
+};

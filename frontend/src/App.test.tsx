@@ -25,25 +25,28 @@ vi.mock('./auth/AuthContext', () => ({
 
 // Mock the library storage functions
 vi.mock('./library/libraryStorage', () => ({
-  loadUserLibrary: vi.fn(() => ({})),
-  saveUserLibrary: vi.fn(),
+  loadUserLibrary: vi.fn(async () => ({})),
+  saveUserLibrary: vi.fn(async () => {}),
+  deleteUserLibrary: vi.fn(async () => {}),
   Memo: undefined,
   UserLibrary: undefined,
 }));
 
 // Mock the public memos storage
 vi.mock('./library/publicMemoStorage', () => ({
-  loadPublicMemoStore: vi.fn(() => ({})),
-  savePublicMemoStore: vi.fn(),
+  loadPublicMemoStore: vi.fn(async () => ({})),
+  savePublicMemoStore: vi.fn(async (store) => store),
   normalizePublicMemoStore: vi.fn((store) => store),
-  getPublicMemosForBook: vi.fn(() => []),
+  getPublicMemosForBook: vi.fn(async () => []),
 }));
 
 // Mock the auth storage
 vi.mock('./auth/authStorage', () => ({
-  getStoredUser: vi.fn(() => null),
-  setStoredUser: vi.fn(),
-  clearStoredUser: vi.fn(),
+  loadUsers: vi.fn(async () => []),
+  saveUsers: vi.fn(async () => {}),
+  loadCurrentUser: vi.fn(async () => null),
+  saveCurrentUser: vi.fn(async () => {}),
+  clearCurrentUser: vi.fn(async () => {}),
 }));
 
 const mockedUseAuth = vi.mocked(useAuth);
@@ -56,7 +59,7 @@ const mockUser: PublicUser = {
 };
 
 // Helper function to create a test store
-function createTestStore() {
+async function createTestStore() {
   const store = configureStore({
     reducer: {
       library: libraryReducer,
@@ -66,7 +69,7 @@ function createTestStore() {
   });
   
   // Initialize the library with the test user's ID
-  store.dispatch(loadLibrary({ userId: mockUser.id }));
+  await store.dispatch(loadLibrary({ userId: mockUser.id }));
   
   return store;
 }
@@ -90,18 +93,19 @@ describe('App - Search Feature', () => {
 
   beforeEach(() => {
     // Mock the useAuth hook to return an authenticated user
-    mockedUseAuth.mockReturnValue({
-      user: mockUser,
-      isAuthenticated: true,
-      register: vi.fn(),
-      login: vi.fn(),
-      logout: vi.fn(),
-    });
+  mockedUseAuth.mockReturnValue({
+    user: mockUser,
+    isAuthenticated: true,
+    isLoading: false,
+    register: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+  });
   });
 
   it('should display search results panel when user searches for a book', async () => {
     const user = userEvent.setup();
-    const store = createTestStore();
+    const store = await createTestStore();
 
     // Render the full App with all necessary providers
     render(
@@ -139,4 +143,3 @@ describe('App - Search Feature', () => {
     );
   });
 });
-

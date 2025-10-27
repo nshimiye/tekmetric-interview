@@ -21,10 +21,18 @@ vi.mock('../../auth/AuthContext', () => ({
 
 // Mock the library storage functions
 vi.mock('../../library/libraryStorage', () => ({
-  loadUserLibrary: vi.fn(() => ({})),
-  saveUserLibrary: vi.fn(),
+  loadUserLibrary: vi.fn(async () => ({})),
+  saveUserLibrary: vi.fn(async () => {}),
+  deleteUserLibrary: vi.fn(async () => {}),
   Memo: undefined,
   UserLibrary: undefined,
+}));
+
+vi.mock('../../library/publicMemoStorage', () => ({
+  loadPublicMemoStore: vi.fn(async () => ({})),
+  savePublicMemoStore: vi.fn(async (store) => store),
+  normalizePublicMemoStore: vi.fn((store) => store),
+  getPublicMemosForBook: vi.fn(async () => []),
 }));
 
 const mockedUseAuth = vi.mocked(useAuth);
@@ -37,7 +45,7 @@ const mockUser: PublicUser = {
 };
 
 // Helper function to create a test store
-function createTestStore() {
+async function createTestStore() {
   const store = configureStore({
     reducer: {
       library: libraryReducer,
@@ -47,19 +55,20 @@ function createTestStore() {
   });
   
   // Initialize the library with the test user's ID
-  store.dispatch(loadLibrary({ userId: mockUser.id }));
+  await store.dispatch(loadLibrary({ userId: mockUser.id }));
   
   return store;
 }
 
 // Helper function to render the component with all necessary providers
-function renderWithProviders(bookId: string) {
-  const store = createTestStore();
+async function renderWithProviders(bookId: string) {
+  const store = await createTestStore();
 
   // Mock the useAuth hook to return our mock user
   mockedUseAuth.mockReturnValue({
     user: mockUser,
     isAuthenticated: true,
+    isLoading: false,
     register: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
@@ -91,7 +100,7 @@ describe('BookMemoScreen', () => {
     const user = userEvent.setup();
     
     // Render the component with a valid book ID
-    renderWithProviders('the-martian');
+    await renderWithProviders('the-martian');
 
     // Verify "Your memos" section exists with the empty state message
     expect(screen.getByRole('heading', { name: /memo\.yourMemos/i })).toBeInTheDocument();
@@ -129,4 +138,3 @@ describe('BookMemoScreen', () => {
     expect(memoInput).toHaveValue('');
   });
 });
-

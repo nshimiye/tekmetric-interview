@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   clearCurrentUser,
   loadCurrentUser,
@@ -17,6 +17,7 @@ export interface PublicUser {
 export interface AuthContextValue {
   user: PublicUser | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   register: (credentials: { name: string; email: string; password: string }) => Promise<PublicUser>;
   login: (credentials: { email: string; password: string }) => Promise<PublicUser>;
   logout: () => void;
@@ -48,18 +49,42 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [users, setUsers] = useState<User[]>(() => {
-    const storedUsers = loadUsers();
-    return Array.isArray(storedUsers) ? storedUsers : [];
-  });
-  const [currentUser, setCurrentUser] = useState<PublicUser | null>(() => toPublicUser(loadCurrentUser()));
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const upsertUsers = useCallback((updater: (users: User[]) => User[]) => {
-    setUsers((prevUsers) => {
-      const nextUsers = updater(prevUsers);
-      saveUsers(nextUsers);
-      return nextUsers;
-    });
+  useEffect(() => {
+    let isActive = true;
+
+    const initialize = async () => {
+      try {
+        const [storedUsers, storedSession] = await Promise.all([loadUsers(), loadCurrentUser()]);
+        if (!isActive) {
+          return;
+        }
+
+        setUsers(Array.isArray(storedUsers) ? storedUsers : []);
+        setCurrentUser(toPublicUser(storedSession));
+      } catch (error) {
+        console.error('Failed to initialize auth storage', error);
+        if (!isActive) {
+          return;
+        }
+
+        setUsers([]);
+        setCurrentUser(null);
+      } finally {
+        if (isActive) {
+          setIsInitialized(true);
+        }
+      }
+    };
+
+    void initialize();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const register = useCallback(async ({ name, email, password }: { name: string; email: string; password: string }): Promise<PublicUser> => {
@@ -86,13 +111,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       password: trimmedPassword,
     };
 
-    upsertUsers((prevUsers) => [...prevUsers, newUser]);
+    const nextUsers = [...users, newUser];
+    await saveUsers(nextUsers);
+    await saveCurrentUser(newUser);
+    setUsers(nextUsers);
 
     const publicUser = toPublicUser(newUser)!;
     setCurrentUser(publicUser);
-    saveCurrentUser(newUser);
+    setIsInitialized(true);
     return publicUser;
-  }, [upsertUsers, users]);
+  }, [users]);
 
   const login = useCallback(async ({ email, password }: { email: string; password: string }): Promise<PublicUser> => {
     const normalizedEmail = normalizeEmail(email ?? '');
@@ -111,25 +139,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const publicUser = toPublicUser(match)!;
+    await saveCurrentUser(match);
     setCurrentUser(publicUser);
-    saveCurrentUser(match);
+    setIsInitialized(true);
     return publicUser;
   }, [users]);
 
   const logout = useCallback(() => {
     setCurrentUser(null);
-    clearCurrentUser();
+    void clearCurrentUser().catch((error) => {
+      console.error('Failed to clear current user', error);
+    });
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user: currentUser,
       isAuthenticated: Boolean(currentUser),
+      isLoading: !isInitialized,
       register,
       login,
       logout,
     }),
-    [currentUser, login, logout, register],
+    [currentUser, isInitialized, login, logout, register],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -143,4 +175,3 @@ export const useAuth = (): AuthContextValue => {
   }
   return context;
 };
-

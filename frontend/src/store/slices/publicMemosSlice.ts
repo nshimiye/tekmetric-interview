@@ -1,4 +1,4 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import {
   loadPublicMemoStore,
   normalizePublicMemoStore,
@@ -107,12 +107,37 @@ const createPublicMemoEntry = (memo: MemoInput, author: MemoAuthor): PublicMemo 
   };
 };
 
+type PublicMemoStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
+
 interface PublicMemosState {
   store: PublicMemoStore;
+  status: PublicMemoStatus;
+  error: string | null;
 }
 
 const initialState: PublicMemosState = {
-  store: loadPublicMemoStore(),
+  store: {},
+  status: 'idle',
+  error: null,
+};
+
+export const loadPublicMemos = createAsyncThunk<
+  PublicMemoStore,
+  void,
+  { rejectValue: string }
+>('publicMemos/load', async (_, { rejectWithValue }) => {
+  try {
+    return await loadPublicMemoStore();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to load public memos';
+    return rejectWithValue(message);
+  }
+});
+
+const persistPublicMemoStore = (store: PublicMemoStore): void => {
+  void savePublicMemoStore(store).catch((error) => {
+    console.error('Failed to persist public memo store', error);
+  });
 };
 
 const publicMemosSlice = createSlice({
@@ -159,7 +184,7 @@ const publicMemosSlice = createSlice({
       const normalizedNext = normalizePublicMemoStore(nextStore);
       if (!arePublicStoresEqual(state.store, normalizedNext)) {
         state.store = normalizedNext;
-        savePublicMemoStore(normalizedNext);
+        persistPublicMemoStore(normalizedNext);
       }
     },
     
@@ -209,9 +234,26 @@ const publicMemosSlice = createSlice({
       const normalizedNext = normalizePublicMemoStore(nextStore);
       if (!arePublicStoresEqual(state.store, normalizedNext)) {
         state.store = normalizedNext;
-        savePublicMemoStore(normalizedNext);
+        persistPublicMemoStore(normalizedNext);
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadPublicMemos.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(loadPublicMemos.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.error = null;
+        state.store = normalizePublicMemoStore(action.payload);
+      })
+      .addCase(loadPublicMemos.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload ?? action.error.message ?? 'Failed to load public memos';
+        state.store = {};
+      });
   },
 });
 
@@ -224,6 +266,7 @@ export default publicMemosSlice.reducer;
 
 // Selectors
 export const selectPublicMemoStore = (state: RootState) => state.publicMemos.store;
+export const selectPublicMemoStatus = (state: RootState) => state.publicMemos.status;
+export const selectPublicMemoError = (state: RootState) => state.publicMemos.error;
 export const selectPublicMemosForBook = (bookId: string) => (state: RootState) => 
   state.publicMemos.store[bookId] ?? [];
-

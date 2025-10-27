@@ -1,6 +1,5 @@
-import { safeRead, safeRemove, safeWrite } from "../storage/localStorageUtils";
+import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
 
-// import { safeRead, safeRemove, safeWrite } from '../storage/localStorageUtils';
 export interface Memo {
   id: string;
   body: string;
@@ -25,51 +24,65 @@ export interface LibraryEntry {
 
 export type UserLibrary = Record<string, LibraryEntry>;
 
-const LIBRARY_KEY_PREFIX = 'bookmemo_library_';
+const buildLibraryUrl = (userId: string): string => `${API_BASE_URL}/library/${encodeURIComponent(userId)}`;
 
-const getLibraryKey = (userId: string): string => `${LIBRARY_KEY_PREFIX}${userId}`;
+const parseLibraryResponse = async (response: Response): Promise<UserLibrary> => {
+  const payload = (await response.json()) as unknown;
+  if (!isPlainObject(payload)) {
+    return {};
+  }
 
-/**
- * Loads the user's library from local storage.
- * If userId is missing or there is no stored data, returns an empty object.
- * 
- * Example returned object:
- * {
- *   "bookId1": [
- *     { id: "memo1", body: "note1", createdAt: "2023-01-01T12:00:00Z" },
- *     { id: "memo2", body: "note2", createdAt: "2023-01-02T09:30:00Z" }
- *   ],
- *   "bookId2": [
- *     { id: "memo3", body: "another memo", createdAt: "2023-02-10T15:45:00Z" }
- *   ]
- * }
- * 
- * @param userId - The user's unique identifier
- * @returns UserLibrary object mapping book IDs to Memo arrays
- */
-export const loadUserLibrary = (userId: string): UserLibrary => {
+  const library = payload.library;
+  if (!isPlainObject(library)) {
+    return {};
+  }
+
+  return library as UserLibrary;
+};
+
+export const loadUserLibrary = async (userId: string): Promise<UserLibrary> => {
   if (!userId) {
     return {};
   }
 
-  const stored = safeRead<unknown>(getLibraryKey(userId), null);
-  if (!stored || typeof stored !== 'object') {
-    return {};
-  }
-
-  return stored as UserLibrary;
+  const response = await fetch(buildLibraryUrl(userId));
+  await assertApiResponseOk(response);
+  return parseLibraryResponse(response);
 };
 
-export const saveUserLibrary = (userId: string, library: UserLibrary): void => {
+export const saveUserLibrary = async (userId: string, library: UserLibrary): Promise<void> => {
   if (!userId) {
     return;
   }
 
   if (!library || Object.keys(library).length === 0) {
-    safeRemove(getLibraryKey(userId));
+    await deleteUserLibrary(userId);
     return;
   }
 
-  safeWrite(getLibraryKey(userId), library);
+  const response = await fetch(buildLibraryUrl(userId), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ library }),
+  });
+
+  await assertApiResponseOk(response);
 };
 
+export const deleteUserLibrary = async (userId: string): Promise<void> => {
+  if (!userId) {
+    return;
+  }
+
+  const response = await fetch(buildLibraryUrl(userId), {
+    method: 'DELETE',
+  });
+
+  if (response.status === 204) {
+    return;
+  }
+
+  await assertApiResponseOk(response);
+};

@@ -50,7 +50,8 @@
     "privateMemo": "Mémo privé",
     "clearDraft": "Effacer le brouillon",
     "yourNotes": "Vos notes",
-    "community": "Communauté"
+    "community": "Communauté",
+    "saveYourMemosMessage": "Enregistrez vos mémos pour construire un journal de ce qui vous a marqué dans ce livre."
   },
   "search": {
     "searchingFor": "Recherche de {{query}}",
