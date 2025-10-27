@@ -8,7 +8,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import Button from '../../components/Button';
+import Button from '@mui/material/Button';
 import ResultCard from './ResultCard';
 import type {
   BookSearchResult} from '../../store/slices/searchSlice';
@@ -25,7 +25,7 @@ import {
 import type { AppDispatch } from '../../store';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 3,
+  // borderRadius: theme.shape.borderRadius * 3,
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(3),
@@ -37,7 +37,7 @@ const ResultsPanelSection = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(5),
     gap: theme.spacing(4),
   },
-}));
+})) as typeof Paper;
 
 const PanelBody = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -53,7 +53,7 @@ const CarouselHeading = styled(Typography)(({ theme }) => ({
   fontSize: theme.typography.pxToRem(16),
   fontWeight: 400,
   color: theme.palette.text.secondary,
-}));
+})) as typeof Typography;
 
 interface CarouselNavButtonProps {
   placement?: 'left' | 'right';
@@ -345,13 +345,12 @@ function SearchResultsPanel({
         </Stack>
 
         <Stack direction="row" spacing={2}>
-          <Button type="button" variant="secondary" onClick={handleClear}>
+          <Button type="button" variant="outlined" onClick={handleClear}>
             {t('search.clearSearch')}
           </Button>
           {lastResultFromCache && hasResults && (
             <Button 
               type="button" 
-              variant="primary" 
               onClick={handleClearCache}
               title={t('search.retryTitle')}
             >

@@ -4,8 +4,8 @@ import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
+import Button from '@mui/material/Button';
+import {FormInput} from '../../components/Input';
 import ContentContainer from '../../components/layout/ContentContainer';
 import { FormPaper } from '../../components/FormPaper';
 import { useRegisterScreen } from './hooks';
@@ -39,7 +39,7 @@ function RegisterScreen() {
         )}
 
         <Stack spacing={2.5}>
-          <Input
+          <FormInput
             label={t('register.name')}
             name="name"
             autoComplete="name"
@@ -47,7 +47,7 @@ function RegisterScreen() {
             onChange={handleChange}
           />
 
-          <Input
+          <FormInput
             label={t('register.email')}
             name="email"
             type="email"
@@ -56,7 +56,7 @@ function RegisterScreen() {
             onChange={handleChange}
           />
 
-          <Input
+          <FormInput
             label={t('register.password')}
             name="password"
             type="password"
@@ -65,7 +65,7 @@ function RegisterScreen() {
             onChange={handleChange}
           />
 
-          <Input
+          <FormInput
             label={t('register.confirmPassword')}
             name="confirmPassword"
             type="password"

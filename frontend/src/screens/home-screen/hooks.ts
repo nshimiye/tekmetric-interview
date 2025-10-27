@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import type { LibraryBook } from '../../store/slices/librarySlice';
@@ -40,23 +40,14 @@ export function useHomeScreen() {
     [savedBooks],
   );
 
-  // Redux actions
-  const ensureBookInLibrary = useCallback(
-    (book: BookSearchResult | LibraryBook) => {
-      dispatch(ensureBookInLibraryAction(book));
-      return book;
-    },
-    [dispatch],
-  );
-
   // Event handlers
   const handleNavigateToBook = (book: BookSearchResult | LibraryBook) => {
     if (!book) {
       return;
     }
 
-    const normalized = ensureBookInLibrary(book);
-    const targetId = normalized?.id ?? book.id;
+    dispatch(ensureBookInLibraryAction(book));
+    const targetId = book.id;
     if (!targetId) {
       return;
     }
@@ -69,7 +60,7 @@ export function useHomeScreen() {
   };
 
   const handleAddToShelfFromSearch = (book: BookSearchResult) => {
-    ensureBookInLibrary(book);
+    dispatch(ensureBookInLibraryAction(book));
   };
 
   const handleWelcomeSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

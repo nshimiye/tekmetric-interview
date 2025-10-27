@@ -1,9 +1,11 @@
 import type { ChangeEvent } from 'react';
 import Stack from '@mui/material/Stack';
-import Input from '../../../components/Input';
-import { MemoCard, ResponsiveButton, StatusText } from './BookMemoScreen.styles';
+import { FormTextArea } from '../../../components/Input';
+import { MemoCard, StatusText } from './BookMemoScreen.styles';
 import type { StatusKey } from '../utils/memoUtils';
 import { STATUS_VARIANTS } from '../utils/memoUtils';
+import Button from '@mui/material/Button';
+import { useTranslation } from 'react-i18next';
 
 interface MemoEditorProps {
   draftMemo: string;
@@ -20,8 +22,8 @@ function MemoEditor({
   onSaveMemo,
   onClearDraft,
   status,
-  memoInputRef,
 }: MemoEditorProps) {
+  const { t } = useTranslation();
   const hasDraft = draftMemo.trim().length > 0;
   const statusKey: StatusKey = (status in STATUS_VARIANTS ? status : 'idle') as StatusKey;
   const statusMessage =
@@ -29,14 +31,12 @@ function MemoEditor({
 
   return (
     <MemoCard elevation={0}>
-      <Input
-        multiline
-        ariaLabel="Your notes"
+      <FormTextArea
+        aria-label="Your notes"
         name="memo"
         placeholder="What resonated with you? Capture quotes, themes, or questions."
         value={draftMemo}
         onChange={onMemoChange}
-        ref={memoInputRef}
       />
 
       <Stack
@@ -44,18 +44,18 @@ function MemoEditor({
         spacing={2}
         alignItems={{ xs: 'stretch', sm: 'center' }}
       >
-        <ResponsiveButton onClick={onSaveMemo} disabled={!hasDraft}>
-          Add memo
-        </ResponsiveButton>
-        <ResponsiveButton
-          variant="secondary"
+        <Button onClick={onSaveMemo} disabled={!hasDraft}>
+          {t('book.addMemo')}
+        </Button>
+        <Button
+          variant="outlined"
           onClick={onClearDraft}
           disabled={!hasDraft}
         >
-          Clear draft
-        </ResponsiveButton>
+          {t('memo.clearDraft')}
+        </Button>
         <StatusText variant="caption" statusKey={statusKey}>
-          {statusMessage}
+          {t(statusMessage)}
         </StatusText>
       </Stack>
     </MemoCard>

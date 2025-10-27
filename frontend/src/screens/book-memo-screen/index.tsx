@@ -1,4 +1,5 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import MemoEditor from './components/MemoEditor';
 import UserMemosSection from './components/UserMemosSection';
@@ -15,6 +16,7 @@ import {
 } from './styles';
 
 function BookMemoScreen() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
 
@@ -46,7 +48,7 @@ function BookMemoScreen() {
               variant="body1"
               onClick={() => navigate('/')}
             >
-              Home
+              {t('memo.home')}
             </BreadcrumbLink>
             <Typography variant="body1" color="text.primary">
               {selectedBook.title}

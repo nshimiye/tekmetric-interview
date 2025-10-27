@@ -79,11 +79,3 @@ export const UserEmail = styled(Typography)(({ theme }) => ({
 export const AvatarContainer = styled(Box)(() => ({
   textAlign: 'center',
 }));
-
-export const ResponsiveButtonWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    width: 'auto',
-  },
-}));
-

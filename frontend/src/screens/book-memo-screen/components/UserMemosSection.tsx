@@ -8,6 +8,7 @@ import {
   MemoList,
   MemoListItem,
 } from './BookMemoScreen.styles';
+import { useTranslation } from 'react-i18next';
 
 interface UserMemo {
   id: string;
@@ -22,11 +23,12 @@ interface UserMemosSectionProps {
 }
 
 function UserMemosSection({ memos, onToggleMemoPublic }: UserMemosSectionProps) {
+  const { t } = useTranslation();
   return (
     <MemoCollectionCard variant="outlined">
       <Stack spacing={1}>
         <Typography variant="h5" component="h3">
-          Your memos
+          {t('memo.yourMemos')}
         </Typography>
       </Stack>
 
@@ -92,8 +94,7 @@ function UserMemosSection({ memos, onToggleMemoPublic }: UserMemosSectionProps) 
         </MemoList>
       ) : (
         <Alert severity="info" variant="outlined">
-          Save your memos to build a running log of what caught your attention
-          in this book.
+          {t('memo.saveYourMemosMessage')}
         </Alert>
       )}
     </MemoCollectionCard>

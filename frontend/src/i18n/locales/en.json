@@ -43,6 +43,19 @@
     "welcomeTitle": "Welcome to Book Memo!",
     "welcomeMessage": "It looks like you don't have any memos yet. Search for a book to start writing your first memo."
   },
+  "memo": {
+    "home": "Home",
+    "yourMemos": "Your memos",
+    "sharedWithOthers": "Shared with others",
+    "privateMemo": "Private memo",
+    "clearDraft": "Clear draft",
+    "yourNotes": "Your notes",
+    "community": "Community",
+    "startAMemo": "Start a memo",
+    "draftInProgress": "Draft in progress",
+    "memoAdded": "Memo added",
+    "saveYourMemosMessage": "Save your memos to build a running log of what caught your attention in this book."
+  },
   "search": {
     "searchingFor": "Searching for {{query}}",
     "resultsFor": "Results for {{query}}",
@@ -68,7 +81,9 @@
     "viewMemos": "View memos",
     "memoCount": "{{count}} memo",
     "memoCount_plural": "{{count}} memos",
-    "coverAlt": "Cover of {{title}}"
+    "coverAlt": "Cover of {{title}}",
+    "details": "Book details",
+    "coverUnavailable": "Cover unavailable"
   },
   "language": {
     "select": "Select language",

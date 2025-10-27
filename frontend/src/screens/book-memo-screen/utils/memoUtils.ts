@@ -12,15 +12,15 @@ export interface StatusVariant {
 
 export const STATUS_VARIANTS: Record<StatusKey, StatusVariant> = {
   saved: {
-    message: 'Memo added',
+    message: 'memo.memoAdded',
     color: (theme) => theme.palette.success.main,
   },
   editing: {
-    message: 'Draft in progress',
+    message: 'memo.draftInProgress',
     color: (theme) => theme.palette.warning.main,
   },
   idle: {
-    message: 'Start a memo',
+    message: 'memo.startAMemo',
     color: (theme) => theme.palette.text.secondary,
   },
 };

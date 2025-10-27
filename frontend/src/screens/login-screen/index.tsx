@@ -4,8 +4,8 @@ import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
+import Button from '@mui/material/Button';
+import { FormInput } from '../../components/Input';
 import ContentContainer from '../../components/layout/ContentContainer';
 import { FormPaper } from '../../components/FormPaper';
 import { useLoginScreen } from './hooks';
@@ -39,7 +39,7 @@ function LoginScreen() {
         )}
 
         <Stack spacing={2.5}>
-          <Input
+          <FormInput
             label={t('login.email')}
             name="email"
             type="email"
@@ -48,7 +48,7 @@ function LoginScreen() {
             onChange={handleChange}
           />
 
-          <Input
+          <FormInput
             label={t('login.password')}
             name="password"
             type="password"

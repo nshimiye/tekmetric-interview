@@ -3,7 +3,6 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Button from '../../../components/Button';
 import type { StatusKey } from '../utils/memoUtils';
 import { STATUS_VARIANTS } from '../utils/memoUtils';
 
@@ -27,7 +26,7 @@ export const BookCover = styled(Box, {
 })<BookCoverProps>(({ theme, hasImage }) => ({
   width: '100%',
   aspectRatio: '3 / 4',
-  borderRadius: theme.shape.borderRadius * 3,
+  // borderRadius: theme.shape.borderRadius * 3,
   background: hasImage
     ? theme.palette.background.paper
     : theme.custom.gradients.hero(),
@@ -68,21 +67,13 @@ export const MemoCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
-export const ResponsiveButton = styled(Button)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    width: 'auto',
-  },
-}));
-
 export const MemoList = styled(Stack)(() => ({
   listStyle: 'none',
   padding: 0,
   margin: 0,
-}));
+})) as typeof Stack;
 
 export const MemoListItem = styled(Paper)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 2,
   padding: theme.spacing(2.5),
   display: 'flex',
   flexDirection: 'column',
@@ -90,7 +81,7 @@ export const MemoListItem = styled(Paper)(({ theme }) => ({
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(3),
   },
-}));
+})) as typeof Paper;
 
 export const MemoBody = styled(Typography)(() => ({
   whiteSpace: 'pre-line',

@@ -94,8 +94,8 @@ describe('BookMemoScreen', () => {
     renderWithProviders('the-martian');
 
     // Verify "Your memos" section exists with the empty state message
-    expect(screen.getByRole('heading', { name: /Your memos/i })).toBeInTheDocument();
-    expect(screen.getByText(/Save your memos to build a running log/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /memo\.yourMemos/i })).toBeInTheDocument();
+    expect(screen.getByText(/memo\.saveYourMemosMessage/i)).toBeInTheDocument();
 
     // Find the memo input field
     const memoInput = screen.getByPlaceholderText(
@@ -111,7 +111,7 @@ describe('BookMemoScreen', () => {
     expect(memoInput).toHaveValue(testMemo);
 
     // Find and click the "Add memo" button
-    const addButton = screen.getByRole('button', { name: /add memo/i });
+    const addButton = screen.getByRole('button', { name: /book\.addMemo/i });
     expect(addButton).toBeInTheDocument();
     expect(addButton).not.toBeDisabled();
     
@@ -123,7 +123,7 @@ describe('BookMemoScreen', () => {
     });
 
     // Verify the empty state message is no longer present
-    expect(screen.queryByText(/Save your memos to build a running log/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/memo\.saveYourMemosMessage/i)).not.toBeInTheDocument();
 
     // Verify the input is cleared after adding the memo
     expect(memoInput).toHaveValue('');

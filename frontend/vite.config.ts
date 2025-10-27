@@ -6,11 +6,6 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true, // Automatically open the browser on dev server start
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.ts',
-  },
+  }
 });
 

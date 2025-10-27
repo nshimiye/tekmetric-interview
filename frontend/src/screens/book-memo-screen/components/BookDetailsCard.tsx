@@ -9,6 +9,7 @@ import {
 } from './BookMemoScreen.styles';
 import type { Book } from '../../../data/books';
 import type { LibraryBook } from '../../../store/slices/librarySlice';
+import { useTranslation } from 'react-i18next';
 
 const TruncatedDescription = styled(Typography)(() => ({
   display: '-webkit-box',
@@ -22,6 +23,7 @@ interface BookDetailsCardProps {
 }
 
 function BookDetailsCard({ book }: BookDetailsCardProps) {
+  const { t } = useTranslation();
   const authorsLabel = useMemo(() => {
     if (!book) {
       return '';
@@ -47,7 +49,7 @@ function BookDetailsCard({ book }: BookDetailsCardProps) {
   return (
     <BookInfoCard variant="outlined">
       <Typography variant="overline" color="text.secondary">
-        Book details
+        {t('book.details')}
       </Typography>
       <BookCover aria-hidden={!coverImage} hasImage={Boolean(coverImage)}>
         {coverImage ? (
@@ -58,7 +60,7 @@ function BookDetailsCard({ book }: BookDetailsCardProps) {
           />
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Cover unavailable
+            {t('book.coverUnavailable')}
           </Typography>
         )}
       </BookCover>
@@ -68,7 +70,7 @@ function BookDetailsCard({ book }: BookDetailsCardProps) {
         </Typography>
         {authorsLabel && (
           <Typography variant="body2" color="text.secondary">
-            by {authorsLabel}
+            {t('book.by')} {authorsLabel}
           </Typography>
         )}
       </Stack>

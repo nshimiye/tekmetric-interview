@@ -1,5 +1,4 @@
-import type { TextareaHTMLAttributes } from 'react';
-import { forwardRef } from 'react';
+import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormLabel from '@mui/material/FormLabel';
@@ -38,34 +37,30 @@ interface InputBaseProps {
   name?: string;
 }
 
-type InputProps = InputBaseProps & TextareaHTMLAttributes<HTMLTextAreaElement> & { multiline?: boolean };
-
-const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(function Input(
-  { label, helperText, multiline = false, id, ...props },
-  ref,
-) {
+export function FormInput({ label, helperText, id, ...props }: InputBaseProps & InputHTMLAttributes<HTMLInputElement>) {
   const controlId = id ?? props.name;
 
-  if (multiline) {
+  const inputProps = props as OutlinedInputProps;
+  return (
+    <FormControl fullWidth>
+      {label && <FormLabel htmlFor={controlId}>{label}</FormLabel>}
+      <OutlinedInput id={controlId} {...inputProps} />
+      {helperText && <FormHelperText>{helperText}</FormHelperText>}
+    </FormControl>
+  );
+}
+
+type TextAreaProps = InputBaseProps & TextareaHTMLAttributes<HTMLTextAreaElement>;
+
+export function FormTextArea({ label, helperText, id, ...props }: TextAreaProps) {
+  const controlId = id ?? props.name;
+
     const textareaProps = props as TextareaHTMLAttributes<HTMLTextAreaElement>;
     return (
       <FormControl fullWidth>
         {label && <FormLabel htmlFor={controlId}>{label}</FormLabel>}
-        <StyledTextarea id={controlId} ref={ref as React.Ref<HTMLTextAreaElement>} {...textareaProps} />
+        <StyledTextarea id={controlId} {...textareaProps} />
         {helperText && <FormHelperText>{helperText}</FormHelperText>}
       </FormControl>
     );
-  }
-
-  const inputProps = props as Omit<OutlinedInputProps, 'multiline'>;
-  return (
-    <FormControl fullWidth>
-      {label && <FormLabel htmlFor={controlId}>{label}</FormLabel>}
-      <OutlinedInput id={controlId} inputRef={ref as React.Ref<HTMLInputElement>} {...inputProps} />
-      {helperText && <FormHelperText>{helperText}</FormHelperText>}
-    </FormControl>
-  );
-});
-
-export default Input;
-
+}

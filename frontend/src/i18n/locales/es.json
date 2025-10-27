@@ -1,9 +1,9 @@
 {
   "app": {
-    "title": "Memo de Libros"
+    "title": "Book Memo"
   },
   "header": {
-    "logo": "Memo de Libros",
+    "logo": "Book Memo",
     "searchPlaceholder": "Buscar libros por título, autor o ISBN...",
     "searchAriaLabel": "Buscar libros",
     "searchButton": "Buscar",
@@ -43,6 +43,16 @@
     "welcomeTitle": "¡Bienvenido a Memo de Libros!",
     "welcomeMessage": "Parece que aún no tienes ningún memo. Busca un libro para comenzar a escribir tu primer memo."
   },
+  "memo": {
+    "home": "Inicio",
+    "yourMemos": "Tus memos",
+    "sharedWithOthers": "Compartido con otros lectores",
+    "privateMemo": "Memo privado",  
+    "clearDraft": "Borrar brouillon",
+    "yourNotes": "Tus notas",
+    "community": "Comunidad",
+    "saveYourMemosMessage": "Guarda tus memos para construir un registro de lo que te llamó la atención en este libro."
+  },
   "search": {
     "searchingFor": "Buscando {{query}}",
     "resultsFor": "Resultados para {{query}}",
@@ -68,7 +78,9 @@
     "viewMemos": "Ver memos",
     "memoCount": "{{count}} memo",
     "memoCount_plural": "{{count}} memos",
-    "coverAlt": "Portada de {{title}}"
+    "coverAlt": "Portada de {{title}}",
+    "details": "Detalles del libro",
+    "coverUnavailable": "Sin portada disponible"
   },
   "language": {
     "select": "Seleccionar idioma",

@@ -7,12 +7,14 @@ import {
   MemoBody,
 } from './BookMemoScreen.styles';
 import type { PublicMemo } from '../../../library/publicMemoStorage';
+import { useTranslation } from 'react-i18next';
 
 interface CommunityMemosSectionProps {
   memos: PublicMemo[];
 }
 
 function CommunityMemosSection({ memos }: CommunityMemosSectionProps) {
+  const { t } = useTranslation();
   if (!memos || memos.length === 0) {
     return null;
   }
@@ -21,7 +23,7 @@ function CommunityMemosSection({ memos }: CommunityMemosSectionProps) {
     <MemoCollectionCard variant="outlined">
       <Stack spacing={1}>
         <Typography variant="h5" component="h3">
-          Community
+          {t('memo.community')}
         </Typography>
       </Stack>
       <MemoList

@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   searchBooks,
@@ -29,14 +29,14 @@ export function useSearch() {
     dispatch(setSearchTerm(value));
   };
 
-  const clearSearch = useCallback(() => {
+  const clearSearch = () => {
     if (activeRequest.current) {
       activeRequest.current.abort();
       activeRequest.current = null;
     }
 
     dispatch(clearSearchAction());
-  }, [dispatch]);
+  };
 
   const handleSearchSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

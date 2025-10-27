@@ -5,7 +5,7 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import Button from './Button';
+import Button from '@mui/material/Button';
 import type { LibraryBook } from '../store/slices/librarySlice';
 import type { Memo } from '../library/libraryStorage';
 import type { OverridableComponent } from '@mui/material/OverridableComponent';

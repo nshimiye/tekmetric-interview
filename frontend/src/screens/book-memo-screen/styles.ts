@@ -58,5 +58,5 @@ export const BreadcrumbLink = styled(Link)(({ theme }) => ({
     textDecoration: 'underline',
     color: theme.palette.text.primary,
   },
-}));
+})) as typeof Link;
 

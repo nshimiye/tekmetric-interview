@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Stack from '@mui/material/Stack';
-import Button from '../Button';
+import Button from '@mui/material/Button';
 import LanguageSwitcher from '../LanguageSwitcher';
 import BookSearchForm from '../BookSearchForm';
 import type { PublicUser } from '../../auth/AuthContext';
@@ -12,7 +12,6 @@ import {
   HeaderContainer,
   LogoLink,
   SearchFormWrapper,
-  ResponsiveButtonWrapper,
 } from './styles';
 
 interface HeaderProps {
@@ -61,11 +60,9 @@ function Header({ isAuthenticated, user, onLogout }: HeaderProps) {
                 </>
               ) : (
                 <>
-                  <ResponsiveButtonWrapper>
                     <Button component={Link} to="/register">
                       {t('header.createAccount')}
                     </Button>
-                  </ResponsiveButtonWrapper>
                   <LanguageSwitcher />
                 </>
               )}

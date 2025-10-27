@@ -1,10 +1,10 @@
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled } from '@mui/material/styles';
-import Button from './Button';
 
 const SearchForm = styled('form')(({ theme }) => ({
   width: '100%',

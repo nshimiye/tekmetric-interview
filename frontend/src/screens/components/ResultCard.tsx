@@ -4,7 +4,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import Button from '../../components/Button';
+import Button from '@mui/material/Button';
 import type { BookSearchResult } from '../../store/slices/searchSlice';
 
 const StyledResultCard = styled(Paper)(({ theme }) => ({
@@ -13,12 +13,11 @@ const StyledResultCard = styled(Paper)(({ theme }) => ({
   flexDirection: 'column',
   gap: theme.spacing(2.5),
   height: '100%',
-}));
+})) as typeof Paper;
 
 const ResultCover = styled('div')(({ theme }) => ({
   width: '100%',
   aspectRatio: '3 / 4',
-  borderRadius: theme.shape.borderRadius * 2.5,
   border: `1px solid ${theme.custom.designTokens.borderMuted}`,
   overflow: 'hidden',
   backgroundColor: theme.custom.designTokens.backgroundBody,
@@ -37,7 +36,7 @@ const NoCoverText = styled(Typography)(({ theme }) => ({
   paddingLeft: theme.spacing(2),
   paddingRight: theme.spacing(2),
   textAlign: 'center',
-}));
+})) as typeof Typography;
 
 const OneLineText = styled(Typography)(() => ({
   textOverflow: 'ellipsis',
@@ -48,7 +47,7 @@ const OneLineText = styled(Typography)(() => ({
 const ResultTitle = styled(OneLineText)(() => ({
   fontSize: '1.05rem',
   fontWeight: 600,
-}));
+})) as typeof Typography;
 
 const ResultDescription = styled(Typography)(() => ({
   display: '-webkit-box',
@@ -66,12 +65,9 @@ const ResultMeta = styled('div')(({ theme }) => ({
 
 const ResultActionsRow = styled(Stack)(() => ({
   width: '100%',
+  justifyContent: 'space-between',
 }));
 
-const ResultActionButton = styled(Button)(() => ({
-  flex: 1,
-  minWidth: 100,
-}));
 
 interface ResultCardProps {
   result: BookSearchResult;
@@ -124,7 +120,7 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
         </Typography>
 
         <ResultActionsRow direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-          <ResultActionButton
+          <Button
             type="button"
             onClick={() => {
               if (typeof onAddMemo === 'function') {
@@ -133,10 +129,10 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
             }}
           >
             {t('book.addMemo')}
-          </ResultActionButton>
-          <ResultActionButton
+          </Button>
+          <Button
             type="button"
-            variant="secondary"
+            variant="outlined"
             disabled={isSaved}
             onClick={() => {
               if (!isSaved && typeof onAddToShelf === 'function') {
@@ -145,7 +141,7 @@ function ResultCard({ result, isSaved, onAddMemo, onAddToShelf }: ResultCardProp
             }}
           >
             {isSaved ? t('book.inShelf') : t('book.addToShelf')}
-          </ResultActionButton>
+          </Button>
         </ResultActionsRow>
 
       </ResultMeta>
