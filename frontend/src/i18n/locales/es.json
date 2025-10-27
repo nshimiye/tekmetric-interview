@@ -1,0 +1,92 @@
+{
+  "app": {
+    "title": "Book Memo"
+  },
+  "header": {
+    "logo": "Book Memo",
+    "searchPlaceholder": "Buscar libros por título, autor o ISBN...",
+    "searchAriaLabel": "Buscar libros",
+    "searchButton": "Buscar",
+    "accountSettings": "Configuración de cuenta",
+    "logout": "Cerrar sesión",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta"
+  },
+  "login": {
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión para continuar capturando tus memos de libros.",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "signIn": "Iniciar sesión",
+    "signingIn": "Iniciando sesión…",
+    "needAccount": "¿Necesitas una cuenta?",
+    "createOne": "Crea una",
+    "errorDefault": "No se puede iniciar sesión en este momento."
+  },
+  "register": {
+    "title": "Crear una cuenta",
+    "subtitle": "Guarda tus memos y revísalos cuando quieras.",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "createAccount": "Crear cuenta",
+    "creatingAccount": "Creando cuenta…",
+    "alreadyRegistered": "¿Ya registrado?",
+    "signIn": "Iniciar sesión",
+    "passwordMismatch": "Las contraseñas no coinciden.",
+    "errorDefault": "No se puede registrar en este momento."
+  },
+  "home": {
+    "yourBookshelf": "Estantería",
+    "savedBooksAriaLabel": "Tus libros guardados",
+    "welcomeTitle": "¡Bienvenido a Memo de Libros!",
+    "welcomeMessage": "Parece que aún no tienes ningún memo. Busca un libro para comenzar a escribir tu primer memo."
+  },
+  "memo": {
+    "home": "Inicio",
+    "yourMemos": "Tus memos",
+    "sharedWithOthers": "Compartido con otros lectores",
+    "privateMemo": "Memo privado",  
+    "clearDraft": "Borrar brouillon",
+    "yourNotes": "Tus notas",
+    "community": "Comunidad",
+    "saveYourMemosMessage": "Guarda tus memos para construir un registro de lo que te llamó la atención en este libro."
+  },
+  "search": {
+    "searchingFor": "Buscando {{query}}",
+    "resultsFor": "Resultados para {{query}}",
+    "searching": "Buscando en Google Books…",
+    "noResults": "No se encontraron libros para {{query}}. Intenta con otro término de búsqueda.",
+    "error": "No se pudieron obtener los libros. Por favor, inténtalo de nuevo.",
+    "clearSearch": "Borrar búsqueda",
+    "retrySearch": "Reintentar búsqueda",
+    "scrollLeft": "Desplazar resultados hacia la izquierda",
+    "scrollRight": "Desplazar resultados hacia la derecha",
+    "booksMatchingSearch": "Libros que coinciden con tu búsqueda",
+    "cachedResults": "Estos libros se cargaron desde tu búsqueda anterior. ¿No encuentras lo que buscas? Intenta buscar nuevamente para obtener resultados actualizados.",
+    "retryTitle": "Buscar nuevamente para obtener resultados actualizados"
+  },
+  "book": {
+    "by": "por",
+    "noCover": "Sin portada disponible",
+    "published": "Publicado {{date}}",
+    "publicationUnknown": "Fecha de publicación desconocida",
+    "addMemo": "Agregar memo",
+    "addToShelf": "Agregar a la estantería",
+    "inShelf": "En la estantería",
+    "viewMemos": "Ver memos",
+    "memoCount": "{{count}} memo",
+    "memoCount_plural": "{{count}} memos",
+    "coverAlt": "Portada de {{title}}",
+    "details": "Detalles del libro",
+    "coverUnavailable": "Sin portada disponible"
+  },
+  "language": {
+    "select": "Seleccionar idioma",
+    "english": "English",
+    "french": "Français",
+    "spanish": "Español"
+  }
+}
+

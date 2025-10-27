@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Book Memo",
+  "name": "Capture what matters to you from every book you read!",
   "icons": [
     {
       "src": "favicon.ico",
