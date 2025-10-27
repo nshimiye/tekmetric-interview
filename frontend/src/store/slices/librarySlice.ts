@@ -90,7 +90,7 @@ const librarySlice = createSlice({
       state.error = null;
     },
     
-    ensureBookInLibrary: (state, action: PayloadAction<LibraryBook>) => {
+    addBookToLibrary: (state, action: PayloadAction<LibraryBook>) => {
       const normalized = action.payload;
 
       const existing = state.items[normalized.id];
@@ -192,15 +192,10 @@ const librarySlice = createSlice({
   },
 });
 
-const {
-  clearLibrary,
-  ensureBookInLibrary,
-  addMemo,
-  updateMemo,
-} = librarySlice.actions;
+const { clearLibrary, addBookToLibrary, addMemo, updateMemo } = librarySlice.actions;
 
 export const libraryInternalActions = {
-  ensureBookInLibrary,
+  addBookToLibrary,
   addMemo,
   updateMemo,
 };

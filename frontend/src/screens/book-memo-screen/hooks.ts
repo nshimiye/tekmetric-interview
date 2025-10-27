@@ -1,13 +1,9 @@
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../auth/AuthContext';
 import { selectLibrary } from '../../store/slices/librarySlice';
-import {
-  ensureBookInLibrary,
-  addMemo,
-  updateMemo,
-} from '../../store/thunks/libraryThunks';
+import { addBookToLibrary, addMemo, updateMemo } from '../../store/thunks/libraryThunks';
 import {
   selectPublicMemoStore,
 } from '../../store/slices/publicMemosSlice';
@@ -15,13 +11,15 @@ import { publishMemo, unpublishMemo } from '../../store/thunks/publicMemosThunks
 import type { AppDispatch } from '../../store';
 import type { Memo } from '../../api/library';
 import { createMemoId } from './utils/memoUtils';
+import { useParams } from 'react-router-dom';
 
 export interface UserMemo extends Memo {
   isPublic?: boolean;
 }
 
-export function useBookMemoScreen(bookId: string | undefined) {
+export function useBookMemoScreen() {
   const { user } = useAuth();
+  const { bookId } = useParams<{ bookId: string }>();
   const dispatch = useDispatch<AppDispatch>();
   
   // Redux state
@@ -32,7 +30,6 @@ export function useBookMemoScreen(bookId: string | undefined) {
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
-  const memoInputRef = useRef<HTMLTextAreaElement>(null);
   if (!user) {
     throw new Error('User must be logged in to access BookMemoScreen');
   }
@@ -72,14 +69,8 @@ export function useBookMemoScreen(bookId: string | undefined) {
   }, [selectedBook?.id]);
 
   useEffect(() => {
-    if (status === 'idle' || status === 'saved') {
-      memoInputRef.current?.focus();
-    }
-  }, [status]);
-
-  useEffect(() => {
     if (selectedBook) {
-      dispatch(ensureBookInLibrary(selectedBook));
+      dispatch(addBookToLibrary(selectedBook));
     }
   }, [selectedBook, dispatch]);
 
@@ -148,7 +139,6 @@ export function useBookMemoScreen(bookId: string | undefined) {
     canViewSharedMemos,
     draftMemo,
     status,
-    memoInputRef,
     handleMemoChange,
     handleSaveMemo,
     handleClearDraft,

@@ -27,7 +27,6 @@ function BookMemoScreen() {
     canViewSharedMemos,
     draftMemo,
     status,
-    memoInputRef,
     handleMemoChange,
     handleSaveMemo,
     handleClearDraft,
@@ -61,7 +60,6 @@ function BookMemoScreen() {
             onSaveMemo={handleSaveMemo}
             onClearDraft={handleClearDraft}
             status={status}
-            memoInputRef={memoInputRef}
           />
 
           <UserMemosSection

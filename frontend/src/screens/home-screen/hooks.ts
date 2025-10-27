@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import type { LibraryBook } from '../../store/slices/librarySlice';
 import { selectLibrary } from '../../store/slices/librarySlice';
-import { ensureBookInLibrary as ensureBookInLibraryThunk } from '../../store/thunks/libraryThunks';
+import { addBookToLibrary } from '../../store/thunks/libraryThunks';
 import type { BookSearchResult } from '../../store/slices/searchSlice';
 import { selectLastSearchQuery } from '../../store/slices/searchSlice';
 import { searchBooks } from '../../store/thunks/searchThunks';
@@ -41,7 +41,7 @@ export function useHomeScreen() {
       return;
     }
 
-    dispatch(ensureBookInLibraryThunk(book));
+    dispatch(addBookToLibrary(book));
     const targetId = book.id;
     if (!targetId) {
       return;
@@ -55,7 +55,7 @@ export function useHomeScreen() {
   };
 
   const handleAddToShelfFromSearch = (book: BookSearchResult) => {
-    dispatch(ensureBookInLibraryThunk(book));
+    dispatch(addBookToLibrary(book));
   };
 
   const handleWelcomeSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

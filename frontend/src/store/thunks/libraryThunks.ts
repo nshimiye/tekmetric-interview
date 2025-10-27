@@ -39,10 +39,10 @@ const persistLibraryState = async (getState: () => RootState): Promise<void> => 
   }
 };
 
-export const ensureBookInLibrary = createAsyncThunk<void, LibraryBook, { state: RootState }>(
-  'library/ensureBookInLibraryAndPersist',
+export const addBookToLibrary = createAsyncThunk<void, LibraryBook, { state: RootState }>(
+  'library/addBookToLibraryAndPersist',
   async (book, { dispatch, getState }) => {
-    dispatch(libraryInternalActions.ensureBookInLibrary(book));
+    dispatch(libraryInternalActions.addBookToLibrary(book));
     await persistLibraryState(getState);
   },
 );

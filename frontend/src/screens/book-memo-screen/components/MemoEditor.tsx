@@ -13,7 +13,6 @@ interface MemoEditorProps {
   onSaveMemo: () => void;
   onClearDraft: () => void;
   status: string;
-  memoInputRef: React.Ref<HTMLTextAreaElement>;
 }
 
 function MemoEditor({
