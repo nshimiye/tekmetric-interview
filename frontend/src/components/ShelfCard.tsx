@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import Card, { CardTypeMap } from '@mui/material/Card';
+import type { CardTypeMap } from '@mui/material/Card';
+import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -7,7 +8,7 @@ import { styled } from '@mui/material/styles';
 import Button from './Button';
 import type { LibraryBook } from '../store/slices/librarySlice';
 import type { Memo } from '../library/libraryStorage';
-import { OverridableComponent } from '@mui/material/OverridableComponent';
+import type { OverridableComponent } from '@mui/material/OverridableComponent';
 
 interface StyledShelfCardProps {
   backgroundImage?: string | null;
