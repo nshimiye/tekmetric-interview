@@ -1,5 +1,5 @@
 # Book Memo
-memo is something you remember about a given book
+A memo is the bit and piece you remember about a given book.
 
 ## Functional requirements
 - Search for a book 
@@ -10,12 +10,10 @@ memo is something you remember about a given book
 ## Non-Functional requirements
 - Intl support (DONE)
 - Caching search queries (DONE)
-- The web application should be responsive, look well on desktop and mobile
-- Lazy loading components that rarely used
+- The web application should be responsive, look well on desktop and mobile (DONE)
+- Lazy loading components that are rarely used
 - Offline/PWA/Service Worker, allow a user to write a memo, even if they do not have internet
 - Skeleton loading - useful when searching for books
-
-
 
 ## Enhancements
 - Allow users to share their memos with other users
@@ -34,7 +32,7 @@ Goal is to make sure each file has at most 100 lines (to help future developer u
 ```sh
 screens/
   ├── {screen-1}/
-  │   ├── index.tsx       (main component - 84 lines)
+  │   ├── index.tsx       (main component)
   │   ├── hooks.ts        (custom hooks for state & logic)
   │   ├── styles.ts       (styled components)
   │   └── components/     (sub-components)
