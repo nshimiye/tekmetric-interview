@@ -1,7 +1,7 @@
 import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit';
 import { type PublicMemo, type PublicMemoStore, type MemoAuthor, type PaginationInfo } from '../../api/publicMemos';
 import { type RootState } from '../index';
-import { loadPublicMemos, loadMorePublicMemos } from '../thunks/publicMemosThunks';
+import { loadMorePublicMemos } from '../thunks/publicMemosThunks';
 
 export type { PublicMemoStore } from '../../api/publicMemos';
 
@@ -63,20 +63,6 @@ const publicMemosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadPublicMemos.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
-      .addCase(loadPublicMemos.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.error = null;
-        state.store = action.payload ?? {};
-      })
-      .addCase(loadPublicMemos.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload ?? action.error.message ?? 'Failed to load public memos';
-        state.store = {};
-      })
       .addCase(loadMorePublicMemos.pending, (state, action) => {
         state.loadingMore[action.meta.arg.bookId] = true;
       })
@@ -86,6 +72,8 @@ const publicMemosSlice = createSlice({
         // Append new memos to existing ones
 
         const existingMemos = state.store[bookId] ?? [];
+        console.log('memos', memos);
+        
         for (const memo of memos) {
           if (!existingMemos.some((m) => m.id === memo.id)) {
             existingMemos.push(memo);

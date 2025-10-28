@@ -57,7 +57,7 @@ function CommunityMemosSection({ bookId }: CommunityMemosSectionProps) {
       page: 1,
       limit: MEMOS_PER_PAGE
     }));
-  }, [bookId]);
+  }, [bookId, dispatch]);
 
   const handleLoadMore = () => {
     dispatch(loadMorePublicMemos({

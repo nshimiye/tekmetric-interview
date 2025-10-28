@@ -10,21 +10,6 @@ export type LibraryItems = Record<string, LibraryEntry>;
 
 type LibraryStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
-// export interface BookInput {
-//   id?: string;
-//   title?: string;
-//   description?: string;
-//   authors?: unknown;
-//   author?: unknown;
-//   thumbnail?: unknown;
-//   image?: unknown;
-//   infoLink?: unknown;
-//   publishedDate?: unknown;
-//   source?: unknown;
-// }
-
-
-
 const areAuthorsEqual = (a: string[] = [], b: string[] = []): boolean => {
   if (a === b) {
     return true;

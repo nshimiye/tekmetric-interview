@@ -32,9 +32,16 @@ vi.mock("../../api/library", () => ({
 }));
 
 vi.mock("../../api/publicMemos", () => ({
-  loadPublicMemoStore: vi.fn(async () => ({})),
   savePublicMemoStore: vi.fn(async (store) => store),
-  getPublicMemosForBook: vi.fn(async () => []),
+  getPublicMemosForBook: vi.fn(async () => ({     
+      memos: [],
+      pagination: {
+      page: 1,
+      limit: 10,
+      totalCount: 0,
+      hasMore: false
+    }
+   })),
 }));
 
 const mockedUseAuth = vi.mocked(useAuth);
