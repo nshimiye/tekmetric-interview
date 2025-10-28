@@ -24,7 +24,14 @@ A memo is the bit and piece you remember about a given book.
 - Vite
 - `@mui/material`, `@emotion/react` for stylng with css-in-js
 - yarn for package management
-- localStorage is used to mock backend (stores and share memos)
+- Express.js development server stores library data in JSON files (enables testing latency/failure scenarios)
+
+## Local backend server
+- Run `yarn server` to start the Express API (`http://localhost:3001`)
+- Set `VITE_LIBRARY_API_BASE_URL` to point the frontend at a different base URL if needed
+- Configure `SIMULATED_LATENCY_MS` and `SIMULATED_FAILURE_RATE` environment variables to introduce artificial delays or flaky responses
+- Auth routes under `/api/auth` persist registered users and the active session
+- Public memo routes under `/api/public-memos` store and serve shared memos
 
 ## Folder structure 
 Goal is to make sure each file has at most 100 lines (to help future developer understand the code)

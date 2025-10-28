@@ -21,7 +21,8 @@
     "signingIn": "Signing in…",
     "needAccount": "Need an account?",
     "createOne": "Create one",
-    "errorDefault": "Unable to sign in right now."
+    "errorDefault": "Unable to sign in right now.",
+    "successMessage": "Successfully logged in!"
   },
   "register": {
     "title": "Create an account",
@@ -35,7 +36,8 @@
     "alreadyRegistered": "Already registered?",
     "signIn": "Sign in",
     "passwordMismatch": "Passwords do not match.",
-    "errorDefault": "Unable to register at the moment."
+    "errorDefault": "Unable to register at the moment.",
+    "successMessage": "Account created successfully!"
   },
   "home": {
     "yourBookshelf": "Bookshelf",

@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import MemoEditor from './components/MemoEditor';
 import UserMemosSection from './components/UserMemosSection';
 import CommunityMemosSection from './components/CommunityMemosSection';
-import BookDetailsCard from './components/BookDetailsCard';
+import BookDetailsCard from '../../components/cards/BookDetailsCard';
 import { useBookMemoScreen } from './hooks';
 import {
   StyledContentContainer,
@@ -19,15 +19,14 @@ function BookMemoScreen() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
-
+  if (!bookId) {
+    throw new Error('Book ID is required');
+  }
   const {
     selectedBook,
     savedMemos,
-    sharedMemos,
-    canViewSharedMemos,
     draftMemo,
     status,
-    memoInputRef,
     handleMemoChange,
     handleSaveMemo,
     handleClearDraft,
@@ -61,7 +60,6 @@ function BookMemoScreen() {
             onSaveMemo={handleSaveMemo}
             onClearDraft={handleClearDraft}
             status={status}
-            memoInputRef={memoInputRef}
           />
 
           <UserMemosSection
@@ -69,9 +67,9 @@ function BookMemoScreen() {
             onToggleMemoPublic={handleToggleMemoPublic}
           />
 
-          {canViewSharedMemos && (
-            <CommunityMemosSection memos={sharedMemos} />
-          )}
+          
+          <CommunityMemosSection bookId={bookId} />
+          
         </MemoColumn>
 
         <BookColumn>

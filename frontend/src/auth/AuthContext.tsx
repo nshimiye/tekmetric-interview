@@ -1,12 +1,6 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
-import {
-  clearCurrentUser,
-  loadCurrentUser,
-  loadUsers,
-  saveCurrentUser,
-  saveUsers,
-  type User,
-} from './authStorage';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { clearCurrentUser, loadCurrentUser, type User } from './authStorage';
+import { API_BASE_URL } from '../api/client';
 
 export interface PublicUser {
   id: string;
@@ -17,28 +11,16 @@ export interface PublicUser {
 export interface AuthContextValue {
   user: PublicUser | null;
   isAuthenticated: boolean;
-  register: (credentials: { name: string; email: string; password: string }) => Promise<PublicUser>;
-  login: (credentials: { email: string; password: string }) => Promise<PublicUser>;
+  isLoading: boolean;
   logout: () => void;
+  login: (credentials: { email: string; password: string }) => Promise<PublicUser>;
+  register: (credentials: { name: string; email: string; password: string }) => Promise<PublicUser>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const normalizeEmail = (value: string): string => value.trim().toLowerCase();
-
-const createUserId = (): string => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-
-  return `user-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
-};
-
 const toPublicUser = (user: User | null): PublicUser | null => {
-  if (!user) {
-    return null;
-  }
-
+  if (!user) return null;
   const { id, name, email } = user;
   return { id, name, email };
 };
@@ -48,88 +30,81 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [users, setUsers] = useState<User[]>(() => {
-    const storedUsers = loadUsers();
-    return Array.isArray(storedUsers) ? storedUsers : [];
-  });
-  const [currentUser, setCurrentUser] = useState<PublicUser | null>(() => toPublicUser(loadCurrentUser()));
+  const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const upsertUsers = useCallback((updater: (users: User[]) => User[]) => {
-    setUsers((prevUsers) => {
-      const nextUsers = updater(prevUsers);
-      saveUsers(nextUsers);
-      return nextUsers;
+  useEffect(() => {
+    let isActive = true;
+    const initialize = async () => {
+      try {
+        const storedSession = await loadCurrentUser();
+        if (!isActive) return;
+        setCurrentUser(toPublicUser(storedSession));
+      } catch (error) {
+        console.error('Failed to initialize auth storage', error);
+        if (!isActive) return;
+        setCurrentUser(null);
+      } finally {
+        if (isActive) setIsInitialized(true);
+      }
+    };
+    void initialize();
+    return () => { isActive = false; };
+  }, []);
+
+
+
+  const login = useCallback(async ({ email, password }: { email: string; password: string }): Promise<PublicUser> => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.message || 'Login failed');
+    }
+    const payload = await response.json();
+    const user = payload.user;
+    if (!user) throw new Error('No user returned');
+    setCurrentUser(user);
+    return user;
   }, []);
 
   const register = useCallback(async ({ name, email, password }: { name: string; email: string; password: string }): Promise<PublicUser> => {
-    const trimmedName = name?.trim();
-    const trimmedPassword = password?.trim();
-    const normalizedEmail = normalizeEmail(email ?? '');
-
-    if (!trimmedName || !normalizedEmail || !trimmedPassword) {
-      throw new Error('Please fill out name, email, and password.');
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.message || 'Registration failed');
     }
-
-    const existing = users.find(
-      (candidate) => normalizeEmail(candidate.email) === normalizedEmail,
-    );
-
-    if (existing) {
-      throw new Error('An account with that email already exists.');
-    }
-
-    const newUser: User = {
-      id: createUserId(),
-      name: trimmedName,
-      email: normalizedEmail,
-      password: trimmedPassword,
-    };
-
-    upsertUsers((prevUsers) => [...prevUsers, newUser]);
-
-    const publicUser = toPublicUser(newUser)!;
-    setCurrentUser(publicUser);
-    saveCurrentUser(newUser);
-    return publicUser;
-  }, [upsertUsers, users]);
-
-  const login = useCallback(async ({ email, password }: { email: string; password: string }): Promise<PublicUser> => {
-    const normalizedEmail = normalizeEmail(email ?? '');
-    const trimmedPassword = password?.trim();
-
-    if (!normalizedEmail || !trimmedPassword) {
-      throw new Error('Please enter your email and password.');
-    }
-
-    const match = users.find(
-      (candidate) => normalizeEmail(candidate.email) === normalizedEmail,
-    );
-
-    if (!match || match.password !== trimmedPassword) {
-      throw new Error('Invalid email or password.');
-    }
-
-    const publicUser = toPublicUser(match)!;
-    setCurrentUser(publicUser);
-    saveCurrentUser(match);
-    return publicUser;
-  }, [users]);
+    const payload = await response.json();
+    const user = payload.user;
+    if (!user) throw new Error('No user returned');
+    setCurrentUser(user);
+    return user;
+  }, []);
 
   const logout = useCallback(() => {
     setCurrentUser(null);
-    clearCurrentUser();
+    void clearCurrentUser().catch((error) => {
+      console.error('Failed to clear current user', error);
+    });
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user: currentUser,
       isAuthenticated: Boolean(currentUser),
-      register,
-      login,
+      isLoading: !isInitialized,
       logout,
+      login,
+      register,
     }),
-    [currentUser, login, logout, register],
+    [currentUser, isInitialized, logout, login, register],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -143,4 +118,3 @@ export const useAuth = (): AuthContextValue => {
   }
   return context;
 };
-

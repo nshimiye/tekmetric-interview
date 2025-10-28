@@ -1,72 +1,37 @@
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../auth/AuthContext';
-import BOOKS from '../../data/books';
-import {
-  selectLibrary,
-  ensureBookInLibrary as ensureBookInLibraryAction,
-  addMemo as addMemoAction,
-  updateMemo as updateMemoAction
+import { 
+  selectSelectedBook,
+  selectSelectedBookId,
+  selectSavedMemos,
 } from '../../store/slices/librarySlice';
-import {
-  selectPublicMemoStore,
-  publishMemo,
-  unpublishMemo,
-} from '../../store/slices/publicMemosSlice';
+import { addMemo, updateMemo } from '../../store/thunks/libraryThunks';
+import { publishMemo, unpublishMemo } from '../../store/thunks/publicMemosThunks';
 import type { AppDispatch } from '../../store';
-import type { Memo } from '../../library/libraryStorage';
+import type { Memo } from '../../api/library';
 import { createMemoId } from './utils/memoUtils';
 
 export interface UserMemo extends Memo {
   isPublic?: boolean;
 }
 
-export function useBookMemoScreen(bookId: string | undefined) {
+export function useBookMemoScreen(bookId: string) {
   const { user } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   
-  // Redux state
-  const library = useSelector(selectLibrary);
-  const publicMemoStore = useSelector(selectPublicMemoStore);
-
   // Local state
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
   const [status, setStatus] = useState('idle');
-  const memoInputRef = useRef<HTMLTextAreaElement>(null);
   if (!user) {
     throw new Error('User must be logged in to access BookMemoScreen');
   }
-  const currentUserId = user.id;
-
-  // Derived state
-  const libraryEntry = bookId ? library?.[bookId] ?? null : null;
-  const catalogBook = useMemo(
-    () => BOOKS.find((book) => book.id === bookId) ?? null,
-    [bookId],
-  );
-  const selectedBook = libraryEntry?.book ?? catalogBook ?? null;
-  const selectedBookId = selectedBook?.id ?? bookId ?? null;
-  const savedMemos: UserMemo[] = Array.isArray(libraryEntry?.memos)
-    ? (libraryEntry.memos as UserMemo[])
-    : [];
-
-  const sharedMemos = useMemo(() => {
-    if (!selectedBookId) {
-      return [];
-    }
-
-    const entries = Array.isArray(publicMemoStore[selectedBookId])
-      ? publicMemoStore[selectedBookId]
-      : [];
-
-    return entries.filter(
-      (entry) => (entry?.author?.id ?? null) !== currentUserId,
-    );
-  }, [publicMemoStore, selectedBookId, currentUserId]);
-
-  const canViewSharedMemos = savedMemos.length > 0 && sharedMemos.length > 0;
+  // Redux state via selectors
+  const selectedBook = useSelector(selectSelectedBook(bookId));
+  const selectedBookId = useSelector(selectSelectedBookId(bookId));
+  const savedMemos: UserMemo[] = useSelector(selectSavedMemos(bookId)) as UserMemo[];
 
   // Effects
   // Reset form state when book changes
@@ -76,18 +41,6 @@ export function useBookMemoScreen(bookId: string | undefined) {
     setStatus('idle');
     setSharePublic(false);
   }, [selectedBook?.id]);
-
-  useEffect(() => {
-    if (status === 'idle' || status === 'saved') {
-      memoInputRef.current?.focus();
-    }
-  }, [status]);
-
-  useEffect(() => {
-    if (selectedBook) {
-      dispatch(ensureBookInLibraryAction(selectedBook));
-    }
-  }, [selectedBook, dispatch]);
 
   // Event handlers
   const handleMemoChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -108,10 +61,10 @@ export function useBookMemoScreen(bookId: string | undefined) {
       isPublic: sharePublic,
     };
 
-    dispatch(addMemoAction({ book:selectedBook, memo:memoEntry }));
+    dispatch(addMemo({ book: selectedBook, memo: memoEntry }));
 
     if (sharePublic && selectedBookId) {
-      dispatch(publishMemo({ bookId: selectedBookId, memo:memoEntry, author:user }));
+      dispatch(publishMemo({ bookId: selectedBookId, memo: memoEntry, author: user }));
     }
 
     setDraftMemo('');
@@ -132,17 +85,16 @@ export function useBookMemoScreen(bookId: string | undefined) {
     if (!target || target.isPublic === nextValue) {
       return;
     }
-    
 
     const updatedMemo: UserMemo = {
       ...target,
       isPublic: nextValue,
     };
 
-    dispatch(updateMemoAction({ book:selectedBook, memoId, updatedMemo }));
+    dispatch(updateMemo({ book: selectedBook, memoId, updatedMemo }));
 
     if (nextValue) {
-      dispatch(publishMemo({ bookId: selectedBookId, memo:updatedMemo, author:user }));
+      dispatch(publishMemo({ bookId: selectedBookId, memo: updatedMemo, author: user }));
     } else {
       dispatch(unpublishMemo({ bookId: selectedBookId, memoId }));
     }
@@ -151,15 +103,11 @@ export function useBookMemoScreen(bookId: string | undefined) {
   return {
     selectedBook,
     savedMemos,
-    sharedMemos,
-    canViewSharedMemos,
     draftMemo,
     status,
-    memoInputRef,
     handleMemoChange,
     handleSaveMemo,
     handleClearDraft,
     handleToggleMemoPublic,
   };
 }
-

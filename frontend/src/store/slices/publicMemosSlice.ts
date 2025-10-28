@@ -1,118 +1,42 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import {
-  loadPublicMemoStore,
-  normalizePublicMemoStore,
-  savePublicMemoStore,
-  type PublicMemo,
-  type PublicMemoStore,
-  type MemoAuthor,
-} from '../../library/publicMemoStorage';
+import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit';
+import { type PublicMemo, type PublicMemoStore, type MemoAuthor, type PaginationInfo } from '../../api/publicMemos';
 import { type RootState } from '../index';
+import { loadMorePublicMemos } from '../thunks/publicMemosThunks';
 
-const arePublicMemoListsEqual = (a: PublicMemo[] = [], b: PublicMemo[] = []): boolean => {
-  if (a === b) {
-    return true;
-  }
+export type { PublicMemoStore } from '../../api/publicMemos';
 
-  if (!Array.isArray(a) || !Array.isArray(b)) {
-    return false;
-  }
-
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  return a.every((entry, index) => {
-    const other = b[index];
-    if (!other) {
-      return false;
-    }
-
-    const entryAuthor = entry.author ?? {};
-    const otherAuthor = other.author ?? {};
-
-    return (
-      entry.id === other.id &&
-      entry.body === other.body &&
-      entry.createdAt === other.createdAt &&
-      entry.sharedAt === other.sharedAt &&
-      (entryAuthor.id ?? null) === (otherAuthor.id ?? null) &&
-      (entryAuthor.name ?? '') === (otherAuthor.name ?? '')
-    );
-  });
-};
-
-const arePublicStoresEqual = (a: PublicMemoStore = {}, b: PublicMemoStore = {}): boolean => {
-  if (a === b) {
-    return true;
-  }
-
-  const aKeys = Object.keys(a);
-  const bKeys = Object.keys(b);
-
-  if (aKeys.length !== bKeys.length) {
-    return false;
-  }
-
-  return aKeys.every((key) => {
-    if (!Object.prototype.hasOwnProperty.call(b, key)) {
-      return false;
-    }
-
-    return arePublicMemoListsEqual(a[key], b[key]);
-  });
-};
-
-interface MemoInput {
-  id?: string;
-  body?: string;
-  createdAt?: string;
+export interface MemoInput {
+  id: string;
+  body: string;
+  createdAt: string;
 }
 
 const createPublicMemoEntry = (memo: MemoInput, author: MemoAuthor): PublicMemo | null => {
-  if (!memo || typeof memo !== 'object') {
-    return null;
-  }
-
-  const { id, body, createdAt } = memo;
-  if (typeof id !== 'string' || id.trim().length === 0) {
-    return null;
-  }
-
-  const trimmedBody = typeof body === 'string' ? body.trim() : '';
-  if (trimmedBody.length === 0) {
-    return null;
-  }
-
-  const memoCreatedAt =
-    typeof createdAt === 'string' && createdAt.trim().length > 0
-      ? createdAt
-      : new Date().toISOString();
-
-  const authorId =
-    author && typeof author.id === 'string' && author.id.trim().length > 0
-      ? author.id.trim()
-      : null;
-  const authorName =
-    author && typeof author.name === 'string' && author.name.trim().length > 0
-      ? author.name.trim()
-      : 'Anonymous reader';
-
   return {
-    id: id.trim(),
-    body: trimmedBody,
-    createdAt: memoCreatedAt,
-    author: { id: authorId, name: authorName },
+    id: memo.id,
+    body: memo.body,
+    createdAt: memo.createdAt,
+    author: { id: author.id, name: author.name },
     sharedAt: new Date().toISOString(),
   };
 };
 
+type PublicMemoStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
+
 interface PublicMemosState {
   store: PublicMemoStore;
+  status: PublicMemoStatus;
+  error: string | null;
+  pagination: Record<string, PaginationInfo>;
+  loadingMore: Record<string, boolean>;
 }
 
 const initialState: PublicMemosState = {
-  store: loadPublicMemoStore(),
+  store: {},
+  status: 'idle',
+  error: null,
+  pagination: {},
+  loadingMore: {},
 };
 
 const publicMemosSlice = createSlice({
@@ -121,109 +45,106 @@ const publicMemosSlice = createSlice({
   reducers: {
     publishMemo: (state, action: PayloadAction<{ bookId: string; memo: MemoInput; author: MemoAuthor }>) => {
       const { bookId, memo, author } = action.payload;
-      
-      if (!bookId) {
-        return;
-      }
 
-      const candidateEntry = createPublicMemoEntry(memo, author);
-      if (!candidateEntry) {
-        return;
-      }
-
-      const existingList = Array.isArray(state.store[bookId])
-        ? state.store[bookId]
-        : [];
-      const existingEntry = existingList.find(
-        (entry) => entry.id === candidateEntry.id,
-      );
-
-      const entryToPersist = existingEntry
-        ? {
-            ...candidateEntry,
-            sharedAt: existingEntry.sharedAt ?? candidateEntry.sharedAt,
-          }
-        : candidateEntry;
-
-      const nextList = existingEntry
-        ? existingList.map((entry) =>
-            entry.id === entryToPersist.id ? entryToPersist : entry,
-          )
-        : [...existingList, entryToPersist];
-
-      const nextStore = {
-        ...state.store,
-        [bookId]: nextList,
-      };
-
-      const normalizedNext = normalizePublicMemoStore(nextStore);
-      if (!arePublicStoresEqual(state.store, normalizedNext)) {
-        state.store = normalizedNext;
-        savePublicMemoStore(normalizedNext);
-      }
+      const newEntry = createPublicMemoEntry(memo, author);
+      if (!newEntry) return; // ensure no null gets into array
+      state.store[bookId] = [...(state.store[bookId] ?? []), newEntry];
     },
     
     unpublishMemo: (state, action: PayloadAction<{ bookId: string; memoId: string }>) => {
       const { bookId, memoId } = action.payload;
       
-      if (!bookId || !memoId) {
-        return;
-      }
-
-      const existingList = Array.isArray(state.store[bookId])
-        ? state.store[bookId]
-        : [];
-      
-      if (existingList.length === 0) {
-        return;
-      }
-
-      const nextList = existingList.filter((entry) => entry.id !== memoId);
-      
-      if (nextList.length === existingList.length) {
-        return;
-      }
-
-      let nextStore: PublicMemoStore;
-      if (nextList.length === 0) {
-        // Cleanup empty public memo list
-        // Example before:
-        // state.store = {
-        //   "book1": [{ id: memoId, body: "Memo body", ... }],
-        //   "book2": [{ id: "memo2", body: "Another Memo", ... }]
-        // }
-        //
-        // Example after removing last memo from "book1":
-        // state.store = {
-        //   "book2": [{ id: "memo2", body: "Another Memo", ... }]
-        // }
-        const { [bookId]: _removed, ...rest } = state.store;
-        nextStore = rest;
-      } else {
-        nextStore = {
-          ...state.store,
-          [bookId]: nextList,
-        };
-      }
-
-      const normalizedNext = normalizePublicMemoStore(nextStore);
-      if (!arePublicStoresEqual(state.store, normalizedNext)) {
-        state.store = normalizedNext;
-        savePublicMemoStore(normalizedNext);
+      if (!Array.isArray(state.store[bookId])) return;
+      state.store[bookId] = state.store[bookId].filter((entry) => entry.id !== memoId);
+      if (state.store[bookId].length === 0) {
+        delete state.store[bookId];
       }
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadMorePublicMemos.pending, (state, action) => {
+        state.loadingMore[action.meta.arg.bookId] = true;
+      })
+      .addCase(loadMorePublicMemos.fulfilled, (state, action) => {
+        const { bookId, memos, pagination } = action.payload;
+        state.loadingMore[bookId] = false;
+        // Append new memos to existing ones
+
+        const existingMemos = state.store[bookId] ?? [];
+        console.log('memos', memos);
+        
+        for (const memo of memos) {
+          if (!existingMemos.some((m) => m.id === memo.id)) {
+            existingMemos.push(memo);
+          }
+        }
+        state.store[bookId] = existingMemos;
+        // Update pagination info
+        state.pagination[bookId] = pagination;
+      })
+      .addCase(loadMorePublicMemos.rejected, (state, action) => {
+        state.loadingMore[action.meta.arg.bookId] = false;
+      });
+  },
 });
 
-export const {
+const { publishMemo, unpublishMemo } = publicMemosSlice.actions;
+
+export const publicMemosInternalActions = {
   publishMemo,
   unpublishMemo,
-} = publicMemosSlice.actions;
+};
 
 export default publicMemosSlice.reducer;
 
 // Selectors
 export const selectPublicMemoStore = (state: RootState) => state.publicMemos.store;
+export const selectPublicMemoStatus = (state: RootState) => state.publicMemos.status;
+export const selectPublicMemoError = (state: RootState) => state.publicMemos.error;
 export const selectPublicMemosForBook = (bookId: string) => (state: RootState) => 
   state.publicMemos.store[bookId] ?? [];
+export const selectPaginationForBook = (bookId: string) => (state: RootState) =>
+  state.publicMemos.pagination[bookId] ?? null;
+export const selectIsLoadingMoreForBook = (bookId: string) => (state: RootState) =>
+  state.publicMemos.loadingMore[bookId] ?? false;
 
+// Memoized parameterized selectors
+export const selectSharedMemos = (bookId: string, currentUserId: string) => 
+  createSelector(
+    [selectPublicMemoStore],
+    (store) => {
+      const entries = Array.isArray(store[bookId])
+        ? store[bookId]
+        : [];
+
+      return entries.filter(
+        (entry) => (entry?.author?.id ?? null) !== currentUserId,
+      );
+    }
+  );
+
+export const selectCanViewSharedMemos = (bookId: string, currentUserId: string) => 
+  createSelector(
+    [
+      selectPublicMemoStore,
+      (state: RootState) => state.library.items[bookId] ?? null,
+    ],
+    (store, libraryEntry) => {
+      const savedMemos = Array.isArray(libraryEntry?.memos) ? libraryEntry.memos : [];
+      
+      if (savedMemos.length === 0) {
+        return false;
+      }
+
+      const entries = Array.isArray(store[bookId])
+        ? store[bookId]
+        : [];
+
+      const sharedMemos = entries.filter(
+        (entry) => (entry?.author?.id ?? null) !== currentUserId,
+      );
+
+      return sharedMemos.length > 0;
+    }
+  );

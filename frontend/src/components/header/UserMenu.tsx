@@ -54,7 +54,7 @@ function UserMenu({ user, onLogout }: UserMenuProps) {
 
   return (
     <>
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
         <LanguageSwitcher />
         <AvatarContainer>
           <Tooltip title={t('header.accountSettings')}>

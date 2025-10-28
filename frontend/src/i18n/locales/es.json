@@ -21,7 +21,8 @@
     "signingIn": "Iniciando sesión…",
     "needAccount": "¿Necesitas una cuenta?",
     "createOne": "Crea una",
-    "errorDefault": "No se puede iniciar sesión en este momento."
+    "errorDefault": "No se puede iniciar sesión en este momento.",
+    "successMessage": "¡Sesión iniciada con éxito!"
   },
   "register": {
     "title": "Crear una cuenta",
@@ -35,7 +36,8 @@
     "alreadyRegistered": "¿Ya registrado?",
     "signIn": "Iniciar sesión",
     "passwordMismatch": "Las contraseñas no coinciden.",
-    "errorDefault": "No se puede registrar en este momento."
+    "errorDefault": "No se puede registrar en este momento.",
+    "successMessage": "¡Cuenta creada con éxito!"
   },
   "home": {
     "yourBookshelf": "Estantería",

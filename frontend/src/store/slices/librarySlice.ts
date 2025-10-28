@@ -1,67 +1,14 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
-import type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
-import { loadUserLibrary, saveUserLibrary } from '../../library/libraryStorage';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
+import type { Memo, LibraryBook, LibraryEntry } from '../../api/library';
 import type { RootState } from '../index';
+import { loadLibrary } from '../thunks/libraryThunks';
 
-export type { Memo, LibraryBook, LibraryEntry } from '../../library/libraryStorage';
+export type { Memo, LibraryBook, LibraryEntry } from '../../api/library';
 
 export type LibraryItems = Record<string, LibraryEntry>;
 
-const normalizeAuthors = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((author) => (typeof author === 'string' ? author.trim() : String(author ?? '').trim()))
-      .filter(Boolean);
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? [trimmed] : [];
-  }
-
-  return [];
-};
-
-interface BookInput {
-  id?: string;
-  title?: string;
-  description?: string;
-  authors?: unknown;
-  author?: unknown;
-  thumbnail?: unknown;
-  image?: unknown;
-  infoLink?: unknown;
-  publishedDate?: unknown;
-  source?: unknown;
-}
-
-const normalizeBookForLibrary = (book: BookInput): LibraryBook | null => {
-  if (!book || !book.id) {
-    return null;
-  }
-
-  const titleValue =
-    typeof book.title === 'string' && book.title.trim().length > 0
-      ? book.title.trim()
-      : 'Untitled';
-
-  return {
-    id: String(book.id),
-    title: titleValue,
-    description: typeof book.description === 'string' ? book.description : '',
-    authors: normalizeAuthors(book.authors ?? book.author),
-    thumbnail:
-      typeof book.thumbnail === 'string'
-        ? book.thumbnail
-        : typeof book.image === 'string'
-          ? book.image
-          : null,
-    infoLink: typeof book.infoLink === 'string' ? book.infoLink : null,
-    publishedDate: typeof book.publishedDate === 'string' ? book.publishedDate : null,
-    source: typeof book.source === 'string' ? book.source : null,
-  };
-};
+type LibraryStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
 const areAuthorsEqual = (a: string[] = [], b: string[] = []): boolean => {
   if (a === b) {
@@ -106,48 +53,30 @@ const areBooksEqual = (a: LibraryBook, b: LibraryBook): boolean => {
 interface LibraryState {
   items: LibraryItems;
   userId: string | null;
+  status: LibraryStatus;
+  error: string | null;
 }
 
 const initialState: LibraryState = {
   items: {},
   userId: null,
+  status: 'idle',
+  error: null,
 };
 
 const librarySlice = createSlice({
   name: 'library',
   initialState,
   reducers: {
-    loadLibrary: (state, action: PayloadAction<{ userId: string }>) => {
-      const { userId } = action.payload;
-      state.userId = userId;
-      
-      if (!userId) {
-        state.items = {};
-        return;
-      }
-
-      const storedLibrary = loadUserLibrary(userId);
-      if (storedLibrary && typeof storedLibrary === 'object') {
-        state.items = storedLibrary;
-      } else {
-        state.items = {};
-      }
-    },
-    
     clearLibrary: (state) => {
       state.items = {};
       state.userId = null;
+      state.status = 'idle';
+      state.error = null;
     },
     
-    ensureBookInLibrary: (state, action: PayloadAction<BookInput>) => {
-      if (!state.userId) {
-        return;
-      }
-
-      const normalized = normalizeBookForLibrary(action.payload);
-      if (!normalized) {
-        return;
-      }
+    addBookToLibrary: (state, action: PayloadAction<LibraryBook>) => {
+      const normalized = action.payload;
 
       const existing = state.items[normalized.id];
       if (existing && areBooksEqual(existing.book, normalized)) {
@@ -168,16 +97,15 @@ const librarySlice = createSlice({
           };
 
       state.items[normalized.id] = nextEntry;
-      saveUserLibrary(state.userId, state.items);
     },
     
-    addMemo: (state, action: PayloadAction<{ book: BookInput; memo: Memo }>) => {
+    addMemo: (state, action: PayloadAction<{ book: LibraryBook; memo: Memo }>) => {
       if (!state.userId) {
         return;
       }
 
       const { book, memo } = action.payload;
-      const normalized = normalizeBookForLibrary(book);
+      const normalized = book;
       if (!normalized) {
         return;
       }
@@ -198,16 +126,15 @@ const librarySlice = createSlice({
         memos: [...currentMemos, memo],
       };
 
-      saveUserLibrary(state.userId, state.items);
     },
-
-    updateMemo: (state, action: PayloadAction<{ book: BookInput; memoId: string; updatedMemo: Memo }>) => {
+    
+    updateMemo: (state, action: PayloadAction<{ book: LibraryBook; memoId: string; updatedMemo: Memo }>) => {
       if (!state.userId) {
         return;
       }
 
       const { book, memoId, updatedMemo } = action.payload;
-      const normalized = normalizeBookForLibrary(book);
+      const normalized = book;
       if (!normalized) {
         return;
       }
@@ -226,23 +153,86 @@ const librarySlice = createSlice({
         book: existing.book,
         memos: nextMemos,
       };
-
-      saveUserLibrary(state.userId, state.items);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadLibrary.pending, (state, action) => {
+        state.status = 'loading';
+        state.error = null;
+        state.userId = action.meta.arg.userId ?? null;
+      })
+      .addCase(loadLibrary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.error = null;
+        state.userId = action.payload.userId;
+        state.items = action.payload.library ?? {};
+      })
+      .addCase(loadLibrary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload ?? action.error.message ?? 'Failed to load user library';
+        state.userId = action.meta.arg.userId ?? null;
+        state.items = {};
+      });
   },
 });
 
-export const {
-  loadLibrary,
-  clearLibrary,
-  ensureBookInLibrary,
+const { clearLibrary, addBookToLibrary, addMemo, updateMemo } = librarySlice.actions;
+
+export const libraryInternalActions = {
+  addBookToLibrary,
   addMemo,
   updateMemo,
-} = librarySlice.actions;
+};
+
+export { clearLibrary };
 
 export default librarySlice.reducer;
 
 // Selectors
 export const selectLibrary = (state: RootState) => state.library.items;
 export const selectLibraryUserId = (state: RootState) => state.library.userId;
+export const selectLibraryStatus = (state: RootState) => state.library.status;
+export const selectLibraryError = (state: RootState) => state.library.error;
 
+// Parameterized selectors
+export const selectLibraryEntry = (bookId: string | null | undefined) => (state: RootState) => {
+  return bookId ? state.library.items[bookId] ?? null : null;
+};
+
+export const selectSelectedBook = (bookId: string | null | undefined) => (state: RootState) => {
+  const libraryEntry = bookId ? state.library.items[bookId] ?? null : null;
+  return libraryEntry?.book ?? null;
+};
+
+export const selectSelectedBookId = (bookId: string | null | undefined) => (state: RootState) => {
+  const libraryEntry = bookId ? state.library.items[bookId] ?? null : null;
+  const selectedBook = libraryEntry?.book ?? null;
+  return selectedBook?.id ?? bookId ?? null;
+};
+
+// Memoized to prevent new empty array references
+export const selectSavedMemos = (bookId: string | null | undefined) => 
+  createSelector(
+    [(state: RootState) => bookId ? state.library.items[bookId] ?? null : null],
+    (libraryEntry) => {
+      return Array.isArray(libraryEntry?.memos) ? libraryEntry.memos : [];
+    }
+  );
+
+// Memoized selectors to prevent unnecessary re-renders
+export const selectSavedBooks = createSelector(
+  [selectLibrary],
+  (libraryItems) => {
+    return Object.values(libraryItems).filter(
+      (entry) => entry && entry.book && entry.book.id,
+    );
+  }
+);
+
+export const selectSavedBookIdsArray = createSelector(
+  [selectSavedBooks],
+  (savedBooks) => {
+    return savedBooks.map((entry) => entry.book.id);
+  }
+);

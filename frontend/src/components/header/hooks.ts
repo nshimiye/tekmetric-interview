@@ -2,11 +2,11 @@ import type { FormEvent } from 'react';
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  searchBooks,
   setSearchTerm,
   clearSearch as clearSearchAction,
   selectSearchTerm,
 } from '../../store/slices/searchSlice';
+import { searchBooks } from '../../store/thunks/searchThunks';
 import type { AppDispatch } from '../../store';
 
 export function useSearch() {
@@ -74,4 +74,3 @@ export function useSearch() {
     handleSearchSubmit,
   };
 }
-

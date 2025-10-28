@@ -21,7 +21,8 @@
     "signingIn": "Connexion en cours…",
     "needAccount": "Besoin d'un compte?",
     "createOne": "Créez-en un",
-    "errorDefault": "Impossible de se connecter pour le moment."
+    "errorDefault": "Impossible de se connecter pour le moment.",
+    "successMessage": "Connexion réussie!"
   },
   "register": {
     "title": "Créer un compte",
@@ -35,7 +36,8 @@
     "alreadyRegistered": "Déjà inscrit?",
     "signIn": "Se connecter",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
-    "errorDefault": "Impossible de s'inscrire pour le moment."
+    "errorDefault": "Impossible de s'inscrire pour le moment.",
+    "successMessage": "Compte créé avec succès!"
   },
   "home": {
     "yourBookshelf": "Bibliothèque",
@@ -50,7 +52,8 @@
     "privateMemo": "Mémo privé",
     "clearDraft": "Effacer le brouillon",
     "yourNotes": "Vos notes",
-    "community": "Communauté"
+    "community": "Communauté",
+    "saveYourMemosMessage": "Enregistrez vos mémos pour construire un journal de ce qui vous a marqué dans ce livre."
   },
   "search": {
     "searchingFor": "Recherche de {{query}}",

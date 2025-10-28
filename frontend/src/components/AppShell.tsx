@@ -6,14 +6,8 @@ import Header from './header';
 import { useAuth } from '../auth/AuthContext';
 
 // Redux imports
-import {
-  loadLibrary,
-  clearLibrary,
-} from '../store/slices/librarySlice';
-import {
-  setCurrentUser,
-  clearSearch,
-} from '../store/slices/searchSlice';
+import { loadLibrary } from '../store/thunks/libraryThunks';
+import { clearSearch } from '../store/slices/searchSlice';
 import type { AppDispatch } from '../store';
 
 // Styled Components
@@ -48,26 +42,27 @@ const MainContent = styled('main')(({ theme }) => ({
 function AppShell() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const userId = user?.id ?? null;
 
   // Load library and set search user when user logs in
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
     if (!isAuthenticated || !userId) {
-      dispatch(clearLibrary());
-      dispatch(setCurrentUser(null));
+      dispatch(loadLibrary({ userId: null }));
       return;
     }
 
     dispatch(loadLibrary({ userId }));
-    dispatch(setCurrentUser(userId));
-  }, [dispatch, isAuthenticated, userId]);
+  }, [dispatch, isAuthenticated, isLoading, userId]);
 
   const handleLogout = () => {
     logout();
-    dispatch(clearLibrary());
+    dispatch(loadLibrary({ userId: null }));
     dispatch(clearSearch());
-    dispatch(setCurrentUser(null));
     navigate('/login', { replace: true });
   };
 
@@ -82,9 +77,9 @@ function AppShell() {
       <MainContent>
         <Outlet />
       </MainContent>
+      
     </RootContainer>
   );
 }
 
 export default AppShell;
-

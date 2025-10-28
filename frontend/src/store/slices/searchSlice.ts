@@ -1,9 +1,9 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { normalizeQuery, searchBooks, clearSearchCache } from '../thunks/searchThunks';
 import type { RootState } from '../index';
-import { loadSearchCache, saveSearchCache, clearSearchCacheStorage } from '../../storage/searchCacheStorage';
-
-const MAX_RESULTS = 7;
+import { loadLibrary } from '../thunks/libraryThunks';
+import { clearLibrary } from './librarySlice';
 
 export interface BookSearchResult {
   id: string;
@@ -15,95 +15,6 @@ export interface BookSearchResult {
   publishedDate: string;
   source: string;
 }
-
-interface VolumeInfo {
-  title?: string;
-  authors?: string[];
-  description?: string;
-  imageLinks?: {
-    thumbnail?: string;
-    smallThumbnail?: string;
-  };
-  infoLink?: string;
-  canonicalVolumeLink?: string;
-  publishedDate?: string;
-  industryIdentifiers?: Array<{ identifier?: string }>;
-}
-
-interface Volume {
-  id?: string;
-  volumeInfo?: VolumeInfo;
-}
-
-interface GoogleBooksResponse {
-  items?: Volume[];
-}
-
-const mapVolumeToResult = (volume: Volume): BookSearchResult => {
-  const info = volume.volumeInfo ?? {};
-  const fallbackId = `volume-${Date.now()}-${Math.random()
-    .toString(16)
-    .slice(2, 10)}`;
-  const generatedId =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : fallbackId;
-
-  return {
-    id:
-      volume.id ??
-      info.industryIdentifiers?.[0]?.identifier ??
-      generatedId,
-    title: info.title ?? 'Untitled',
-    authors: info.authors ?? [],
-    description: info.description ?? '',
-    thumbnail:
-      info.imageLinks?.thumbnail ??
-      info.imageLinks?.smallThumbnail ??
-      null,
-    infoLink: info.infoLink ?? info.canonicalVolumeLink ?? null,
-    publishedDate: info.publishedDate ?? '',
-    source: 'google-books',
-  };
-};
-
-// Async thunk for searching books
-export const searchBooks = createAsyncThunk(
-  'search/searchBooks',
-  async (query: string, { signal, getState }) => {
-    const state = getState() as RootState;
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    // Check if result is already cached
-    const cachedResult = state.search.cache[normalizedQuery];
-    if (cachedResult) {
-      return {
-        results: cachedResult,
-        query,
-        fromCache: true,
-      };
-    }
-
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-        query,
-      )}&maxResults=${MAX_RESULTS}&printType=books`,
-      { signal },
-    );
-
-    if (!response.ok) {
-      throw new Error('Unable to fetch books right now.');
-    }
-
-    const data: GoogleBooksResponse = await response.json();
-    const items = Array.isArray(data.items) ? data.items : [];
-    return {
-      results: items.map(mapVolumeToResult),
-      query,
-      fromCache: false,
-    };
-  },
-);
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -128,7 +39,7 @@ const initialState: SearchState = {
   results: [],
   error: null,
   lastQuery: '',
-  cache: {}, // Will be loaded after user is set
+  cache: {},
   lastResultFromCache: false,
   currentUserId: null,
 };
@@ -139,12 +50,6 @@ const searchSlice = createSlice({
   reducers: {
     setSearchTerm: (state, action: PayloadAction<string>) => {
       state.term = action.payload;
-    },
-    
-    setCurrentUser: (state, action: PayloadAction<string | null>) => {
-      state.currentUserId = action.payload;
-      // Load cache for this user
-      state.cache = loadSearchCache(action.payload);
     },
     
     clearSearch: (state) => {
@@ -163,18 +68,11 @@ const searchSlice = createSlice({
       state.lastQuery = '';
       state.lastResultFromCache = false;
     },
-    
-    clearSearchCache: (state) => {
-      state.cache = {};
-      state.lastResultFromCache = false;
-      // Clear from localStorage for current user
-      clearSearchCacheStorage(state.currentUserId);
-    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(searchBooks.pending, (state, action) => {
-        const normalizedQuery = action.meta.arg.toLowerCase().trim();
+        const normalizedQuery = normalizeQuery(action.meta.arg);
         const isCached = !!state.cache[normalizedQuery];
         
         if (!isCached) {
@@ -185,7 +83,7 @@ const searchSlice = createSlice({
         state.lastQuery = action.meta.arg;
       })
       .addCase(searchBooks.fulfilled, (state, action) => {
-        const normalizedQuery = action.payload.query.toLowerCase().trim();
+        const normalizedQuery = normalizeQuery(action.payload.query);
         state.status = 'success';
         state.results = action.payload.results;
         state.lastResultFromCache = action.payload.fromCache || false;
@@ -193,8 +91,6 @@ const searchSlice = createSlice({
         // Cache the results if not already cached
         if (!action.payload.fromCache) {
           state.cache[normalizedQuery] = action.payload.results;
-          // Save to localStorage for current user
-          saveSearchCache(state.cache, state.currentUserId);
         }
       })
       .addCase(searchBooks.rejected, (state, action) => {
@@ -204,16 +100,37 @@ const searchSlice = createSlice({
         state.status = 'error';
         state.error = action.error.message ?? 'Something went wrong while searching for books.';
         state.lastResultFromCache = false;
+      })
+      .addCase(loadLibrary.pending, (state, action) => {
+        const nextUserId = action.meta.arg.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = {};
+      })
+      .addCase(loadLibrary.fulfilled, (state, action) => {
+        const nextUserId = action.payload.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = {};
+      })
+      .addCase(loadLibrary.rejected, (state, action) => {
+        const nextUserId = action.meta.arg.userId ?? null;
+        state.currentUserId = nextUserId;
+        state.cache = {};
+      })
+      .addCase(clearLibrary, (state) => {
+        state.currentUserId = null;
+        state.cache = {};
+      })
+      .addCase(clearSearchCache.fulfilled, (state) => {
+        state.cache = {};
+        state.lastResultFromCache = false;
       });
   },
 });
 
 export const {
   setSearchTerm,
-  setCurrentUser,
   clearSearch,
   resetSearchState,
-  clearSearchCache,
 } = searchSlice.actions;
 
 export default searchSlice.reducer;
@@ -227,3 +144,26 @@ export const selectLastSearchQuery = (state: RootState) => state.search.lastQuer
 export const selectSearchCacheSize = (state: RootState) => Object.keys(state.search.cache).length;
 export const selectLastResultFromCache = (state: RootState) => state.search.lastResultFromCache;
 
+// Derived selectors - memoized to prevent unnecessary re-renders
+export const selectSafeSearchResults = createSelector(
+  [selectSearchResults],
+  (results) => {
+    return Array.isArray(results) ? results : [];
+  }
+);
+
+export const selectHasSearchResults = createSelector(
+  [selectSearchStatus, selectSafeSearchResults],
+  (status, results) => {
+    return status === 'success' && results.length > 0;
+  }
+);
+
+export const selectReadableSearchQuery = createSelector(
+  [selectLastSearchQuery],
+  (lastQuery) => {
+    return lastQuery && lastQuery.trim().length > 0
+      ? `"${lastQuery}"`
+      : 'your search';
+  }
+);

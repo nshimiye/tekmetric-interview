@@ -6,8 +6,8 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import type { LibraryBook } from '../store/slices/librarySlice';
-import type { Memo } from '../library/libraryStorage';
+import type { LibraryBook } from '../../store/slices/librarySlice';
+import type { Memo } from '../../api/library';
 import type { OverridableComponent } from '@mui/material/OverridableComponent';
 
 interface StyledShelfCardProps {
@@ -158,4 +158,3 @@ function ShelfCard({ book, memos, onViewMemos }: ShelfCardProps) {
 }
 
 export default ShelfCard;
-

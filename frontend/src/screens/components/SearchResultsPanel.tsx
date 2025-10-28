@@ -9,19 +9,19 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import ResultCard from './ResultCard';
-import type {
-  BookSearchResult} from '../../store/slices/searchSlice';
+import ResultCard from '../../components/cards/ResultCard';
+import type { BookSearchResult } from '../../store/slices/searchSlice';
 import {
   selectSearchStatus,
-  selectSearchResults,
   selectSearchError,
   selectLastSearchQuery,
   selectLastResultFromCache,
+  selectSafeSearchResults,
+  selectHasSearchResults,
+  selectReadableSearchQuery,
   clearSearch,
-  clearSearchCache,
-  searchBooks,
 } from '../../store/slices/searchSlice';
+import { clearSearchCache, searchBooks } from '../../store/thunks/searchThunks';
 import type { AppDispatch } from '../../store';
 
 const ResultsPanelSection = styled(Paper)(({ theme }) => ({
@@ -137,24 +137,21 @@ function SearchResultsPanel({
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   
-  // Get search state from Redux
+  // Get search state from Redux via selectors
   const status = useSelector(selectSearchStatus);
-  const results = useSelector(selectSearchResults);
   const error = useSelector(selectSearchError);
   const lastQuery = useSelector(selectLastSearchQuery);
   const lastResultFromCache = useSelector(selectLastResultFromCache);
-  const safeResults = Array.isArray(results) ? results : [];
+  const safeResults = useSelector(selectSafeSearchResults);
+  const hasResults = useSelector(selectHasSearchResults);
+  const readableQuery = useSelector(selectReadableSearchQuery);
+  
   const carouselTrackRef = useRef<HTMLUListElement>(null);
   const [carouselState, setCarouselState] = useState({
     canScrollLeft: false,
     canScrollRight: false,
   });
 
-  const hasResults = status === 'success' && safeResults.length > 0;
-  const readableQuery =
-    lastQuery && lastQuery.trim().length > 0
-      ? `"${lastQuery}"`
-      : 'your search';
   const headingText =
     status === 'loading'
       ? t('search.searchingFor', { query: readableQuery })
@@ -279,12 +276,17 @@ function SearchResultsPanel({
   };
 
   const handleClearCache = () => {
-    // Clear the cache first
-    dispatch(clearSearchCache());
-    // Then re-run the search with the same query to get fresh results
-    if (lastQuery && lastQuery.trim().length > 0) {
-      dispatch(searchBooks(lastQuery));
-    }
+    const normalizedQuery = lastQuery?.trim();
+    void dispatch(clearSearchCache())
+      .unwrap()
+      .catch((error) => {
+        console.error('Failed to clear search cache', error);
+      })
+      .finally(() => {
+        if (normalizedQuery && normalizedQuery.length > 0) {
+          dispatch(searchBooks(lastQuery));
+        }
+      });
   };
 
   if (status === 'idle') {
@@ -414,4 +416,3 @@ function SearchResultsPanel({
 }
 
 export default SearchResultsPanel;
-
