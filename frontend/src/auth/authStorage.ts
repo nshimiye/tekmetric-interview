@@ -1,4 +1,4 @@
-import { API_BASE_URL, assertApiResponseOk, isPlainObject } from '../api/client';
+import { API_BASE_URL } from '../api/client';
 
 export interface User {
   id: string;
@@ -11,10 +11,7 @@ const usersUrl = (): string => `${API_BASE_URL}/auth/users`;
 const sessionUrl = (): string => `${API_BASE_URL}/auth/session`;
 
 const parseUsersResponse = async (response: Response): Promise<User[]> => {
-  const payload = (await response.json()) as unknown;
-  if (!isPlainObject(payload)) {
-    return [];
-  }
+  const payload = (await response.json()) as { users: User[]|null};
 
   const candidates = payload.users;
   if (!Array.isArray(candidates)) {
@@ -25,44 +22,33 @@ const parseUsersResponse = async (response: Response): Promise<User[]> => {
 };
 
 const parseSessionResponse = async (response: Response): Promise<User | null> => {
-  const payload = (await response.json()) as unknown;
-  if (!isPlainObject(payload)) {
-    return null;
-  }
+  const payload = (await response.json()) as { user: User };
 
   const { user } = payload;
   if (user === null) {
     return null;
   }
 
-  if (!isPlainObject(user)) {
-    return null;
-  }
-
-  return user as unknown as User;
+  return user;
 };
 
 export const loadUsers = async (): Promise<User[]> => {
   const response = await fetch(usersUrl());
-  await assertApiResponseOk(response);
   return parseUsersResponse(response);
 };
 
 export const saveUsers = async (users: User[]): Promise<void> => {
-  const response = await fetch(usersUrl(), {
+  await fetch(usersUrl(), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ users }),
   });
-
-  await assertApiResponseOk(response);
 };
 
 export const loadCurrentUser = async (): Promise<User | null> => {
   const response = await fetch(sessionUrl());
-  await assertApiResponseOk(response);
 
   if (response.status === 204) {
     return null;
@@ -77,15 +63,13 @@ export const saveCurrentUser = async (user: User | null): Promise<void> => {
     return;
   }
 
-  const response = await fetch(sessionUrl(), {
+  await fetch(sessionUrl(), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ user }),
   });
-
-  await assertApiResponseOk(response);
 };
 
 export const clearCurrentUser = async (): Promise<void> => {
@@ -96,6 +80,4 @@ export const clearCurrentUser = async (): Promise<void> => {
   if (response.status === 204) {
     return;
   }
-
-  await assertApiResponseOk(response);
 };

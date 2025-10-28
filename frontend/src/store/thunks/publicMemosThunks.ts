@@ -1,5 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { loadPublicMemoStore, savePublicMemoStore, type MemoAuthor } from '../../api/publicMemos';
+import { 
+  loadPublicMemoStore, 
+  savePublicMemoStore, 
+  getPublicMemosForBook,
+  type MemoAuthor,
+  type PublicMemo,
+  type PaginationInfo
+} from '../../api/publicMemos';
 import {
   publicMemosInternalActions,
   type MemoInput,
@@ -20,6 +27,27 @@ export const loadPublicMemos = createAsyncThunk<
     return await loadPublicMemoStore();
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to load public memos';
+    return rejectWithValue(message);
+  }
+});
+
+/**
+ * Async thunk that loads more memos for a specific book with pagination
+ */
+export const loadMorePublicMemos = createAsyncThunk<
+  { bookId: string; memos: PublicMemo[]; pagination: PaginationInfo },
+  { bookId: string; page: number; limit?: number },
+  { rejectValue: string; state: RootState }
+>('publicMemos/loadMore', async ({ bookId, page, limit = 10 }, { rejectWithValue }) => {
+  try {
+    const response = await getPublicMemosForBook(bookId, page, limit);
+    return {
+      bookId,
+      memos: response.memos,
+      pagination: response.pagination
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to load more memos';
     return rejectWithValue(message);
   }
 });

@@ -1,4 +1,4 @@
-import { API_BASE_URL, assertApiResponseOk, isPlainObject } from './client';
+import { API_BASE_URL } from './client';
 
 export interface MemoAuthor {
   id: string | null;
@@ -13,25 +13,38 @@ export interface PublicMemo {
   sharedAt: string;
 }
 
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface PublicMemosResponse {
+  memos: PublicMemo[];
+  pagination: PaginationInfo;
+}
+
 export type PublicMemoStore = Record<string, PublicMemo[]>;
 
 const PUBLIC_MEMOS_URL = `${API_BASE_URL}/public-memos`;
-const PUBLIC_MEMOS_FOR_BOOK_URL = (bookId: string): string =>
-  `${PUBLIC_MEMOS_URL}/${encodeURIComponent(bookId)}`;
+const PUBLIC_MEMOS_FOR_BOOK_URL = (bookId: string, page?: number, limit?: number): string => {
+  const url = `${PUBLIC_MEMOS_URL}/${encodeURIComponent(bookId)}`;
+  if (page !== undefined && limit !== undefined) {
+    return `${url}?page=${page}&limit=${limit}`;
+  }
+  return url;
+};
 
 export const loadPublicMemoStore = async (): Promise<PublicMemoStore> => {
   const response = await fetch(PUBLIC_MEMOS_URL);
-  await assertApiResponseOk(response);
-  const payload = (await response.json()) as unknown;
-  if (!isPlainObject(payload) || !isPlainObject(payload.store)) {
-    return {};
-  }
+  const payload = (await response.json()) as { store: PublicMemoStore };
 
-  return payload.store as PublicMemoStore;
+  return payload.store;
 };
 
 export const savePublicMemoStore = async (store: PublicMemoStore): Promise<PublicMemoStore> => {
-  const response = await fetch(PUBLIC_MEMOS_URL, {
+  await fetch(PUBLIC_MEMOS_URL, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -39,25 +52,25 @@ export const savePublicMemoStore = async (store: PublicMemoStore): Promise<Publi
     body: JSON.stringify({ store }),
   });
 
-  await assertApiResponseOk(response);
   return store;
 };
 
-export const getPublicMemosForBook = async (bookId: string): Promise<PublicMemo[]> => {
-  if (!bookId) {
-    return [];
-  }
-
-  const response = await fetch(PUBLIC_MEMOS_FOR_BOOK_URL(bookId));
+export const getPublicMemosForBook = async (
+  bookId: string,
+  page: number = 1,
+  limit: number = 100
+): Promise<PublicMemosResponse> => {
+  const response = await fetch(PUBLIC_MEMOS_FOR_BOOK_URL(bookId, page, limit));
   if (response.status === 404) {
-    return [];
+    throw new Error('Book memos not found');
   }
-
-  await assertApiResponseOk(response);
-  const payload = (await response.json()) as unknown;
-  if (!isPlainObject(payload) || !Array.isArray(payload.memos)) {
-    return [];
+  if (response.status === 500) {
+    throw new Error('We are having trouble loading the memos right now. Please try again later.');
   }
+  const payload = (await response.json()) as any;
 
-  return payload.memos as PublicMemo[];
+  return {
+    memos: payload.memos as PublicMemo[],
+    pagination: payload.pagination as unknown as PaginationInfo
+  };
 };

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import type { LibraryBook } from '../../store/slices/librarySlice';
-import { selectLibrary } from '../../store/slices/librarySlice';
+import { selectSavedBooks, selectSavedBookIdsArray } from '../../store/slices/librarySlice';
 import { addBookToLibrary } from '../../store/thunks/libraryThunks';
 import type { BookSearchResult } from '../../store/slices/searchSlice';
 import { selectLastSearchQuery } from '../../store/slices/searchSlice';
@@ -17,30 +17,20 @@ export function useHomeScreen() {
   // Local state for welcome search
   const [welcomeSearchTerm, setWelcomeSearchTerm] = useState('');
 
-  // Redux state
-  const library = useSelector(selectLibrary);
+  // Redux state via selectors
+  const savedBooks = useSelector(selectSavedBooks);
+  const savedBookIdsArray = useSelector(selectSavedBookIdsArray);
   const lastSearchQuery = useSelector(selectLastSearchQuery);
-
-  // Derived state
-  const savedBooks = useMemo(
-    () =>
-      Object.values(library).filter(
-        (entry) => entry && entry.book && entry.book.id,
-      ),
-    [library],
-  );
-
+  
+  // Memoize Set creation to maintain reference stability
   const savedBookIds = useMemo(
-    () => new Set(savedBooks.map((entry) => entry.book.id)),
-    [savedBooks],
+    () => new Set(savedBookIdsArray),
+    [savedBookIdsArray]
   );
 
   // Event handlers
   const handleNavigateToBook = (book: BookSearchResult | LibraryBook) => {
-    if (!book) {
-      return;
-    }
-
+  
     dispatch(addBookToLibrary(book));
     const targetId = book.id;
     if (!targetId) {

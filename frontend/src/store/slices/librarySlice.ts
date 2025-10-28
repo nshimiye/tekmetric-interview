@@ -1,5 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import type { Memo, LibraryBook, LibraryEntry } from '../../api/library';
 import type { RootState } from '../index';
 import { loadLibrary } from '../thunks/libraryThunks';
@@ -209,3 +209,45 @@ export const selectLibrary = (state: RootState) => state.library.items;
 export const selectLibraryUserId = (state: RootState) => state.library.userId;
 export const selectLibraryStatus = (state: RootState) => state.library.status;
 export const selectLibraryError = (state: RootState) => state.library.error;
+
+// Parameterized selectors
+export const selectLibraryEntry = (bookId: string | null | undefined) => (state: RootState) => {
+  return bookId ? state.library.items[bookId] ?? null : null;
+};
+
+export const selectSelectedBook = (bookId: string | null | undefined) => (state: RootState) => {
+  const libraryEntry = bookId ? state.library.items[bookId] ?? null : null;
+  return libraryEntry?.book ?? null;
+};
+
+export const selectSelectedBookId = (bookId: string | null | undefined) => (state: RootState) => {
+  const libraryEntry = bookId ? state.library.items[bookId] ?? null : null;
+  const selectedBook = libraryEntry?.book ?? null;
+  return selectedBook?.id ?? bookId ?? null;
+};
+
+// Memoized to prevent new empty array references
+export const selectSavedMemos = (bookId: string | null | undefined) => 
+  createSelector(
+    [(state: RootState) => bookId ? state.library.items[bookId] ?? null : null],
+    (libraryEntry) => {
+      return Array.isArray(libraryEntry?.memos) ? libraryEntry.memos : [];
+    }
+  );
+
+// Memoized selectors to prevent unnecessary re-renders
+export const selectSavedBooks = createSelector(
+  [selectLibrary],
+  (libraryItems) => {
+    return Object.values(libraryItems).filter(
+      (entry) => entry && entry.book && entry.book.id,
+    );
+  }
+);
+
+export const selectSavedBookIdsArray = createSelector(
+  [selectSavedBooks],
+  (savedBooks) => {
+    return savedBooks.map((entry) => entry.book.id);
+  }
+);

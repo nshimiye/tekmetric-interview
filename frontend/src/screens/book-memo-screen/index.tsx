@@ -19,12 +19,12 @@ function BookMemoScreen() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
-
+  if (!bookId) {
+    throw new Error('Book ID is required');
+  }
   const {
     selectedBook,
     savedMemos,
-    sharedMemos,
-    canViewSharedMemos,
     draftMemo,
     status,
     handleMemoChange,
@@ -67,9 +67,9 @@ function BookMemoScreen() {
             onToggleMemoPublic={handleToggleMemoPublic}
           />
 
-          {canViewSharedMemos && (
-            <CommunityMemosSection memos={sharedMemos} />
-          )}
+          
+          <CommunityMemosSection bookId={bookId} />
+          
         </MemoColumn>
 
         <BookColumn>

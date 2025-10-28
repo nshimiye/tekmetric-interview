@@ -1,5 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { normalizeQuery, searchBooks, clearSearchCache } from '../thunks/searchThunks';
 import type { RootState } from '../index';
 import { loadLibrary } from '../thunks/libraryThunks';
@@ -143,3 +143,27 @@ export const selectSearchError = (state: RootState) => state.search.error;
 export const selectLastSearchQuery = (state: RootState) => state.search.lastQuery;
 export const selectSearchCacheSize = (state: RootState) => Object.keys(state.search.cache).length;
 export const selectLastResultFromCache = (state: RootState) => state.search.lastResultFromCache;
+
+// Derived selectors - memoized to prevent unnecessary re-renders
+export const selectSafeSearchResults = createSelector(
+  [selectSearchResults],
+  (results) => {
+    return Array.isArray(results) ? results : [];
+  }
+);
+
+export const selectHasSearchResults = createSelector(
+  [selectSearchStatus, selectSafeSearchResults],
+  (status, results) => {
+    return status === 'success' && results.length > 0;
+  }
+);
+
+export const selectReadableSearchQuery = createSelector(
+  [selectLastSearchQuery],
+  (lastQuery) => {
+    return lastQuery && lastQuery.trim().length > 0
+      ? `"${lastQuery}"`
+      : 'your search';
+  }
+);

@@ -7,7 +7,6 @@ import { useAuth } from '../auth/AuthContext';
 
 // Redux imports
 import { loadLibrary } from '../store/thunks/libraryThunks';
-import { loadPublicMemos } from '../store/thunks/publicMemosThunks';
 import { clearSearch } from '../store/slices/searchSlice';
 import type { AppDispatch } from '../store';
 
@@ -46,10 +45,6 @@ function AppShell() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const userId = user?.id ?? null;
 
-  useEffect(() => {
-    dispatch(loadPublicMemos());
-  }, [dispatch]);
-
   // Load library and set search user when user logs in
   useEffect(() => {
     if (isLoading) {
@@ -82,6 +77,7 @@ function AppShell() {
       <MainContent>
         <Outlet />
       </MainContent>
+      
     </RootContainer>
   );
 }

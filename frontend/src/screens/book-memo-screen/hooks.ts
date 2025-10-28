@@ -1,31 +1,26 @@
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../auth/AuthContext';
-import { selectLibrary } from '../../store/slices/librarySlice';
-import { addBookToLibrary, addMemo, updateMemo } from '../../store/thunks/libraryThunks';
-import {
-  selectPublicMemoStore,
-} from '../../store/slices/publicMemosSlice';
+import { 
+  selectSelectedBook,
+  selectSelectedBookId,
+  selectSavedMemos,
+} from '../../store/slices/librarySlice';
+import { addMemo, updateMemo } from '../../store/thunks/libraryThunks';
 import { publishMemo, unpublishMemo } from '../../store/thunks/publicMemosThunks';
 import type { AppDispatch } from '../../store';
 import type { Memo } from '../../api/library';
 import { createMemoId } from './utils/memoUtils';
-import { useParams } from 'react-router-dom';
 
 export interface UserMemo extends Memo {
   isPublic?: boolean;
 }
 
-export function useBookMemoScreen() {
+export function useBookMemoScreen(bookId: string) {
   const { user } = useAuth();
-  const { bookId } = useParams<{ bookId: string }>();
   const dispatch = useDispatch<AppDispatch>();
   
-  // Redux state
-  const library = useSelector(selectLibrary);
-  const publicMemoStore = useSelector(selectPublicMemoStore);
-
   // Local state
   const [draftMemo, setDraftMemo] = useState('');
   const [sharePublic, setSharePublic] = useState(false);
@@ -33,31 +28,10 @@ export function useBookMemoScreen() {
   if (!user) {
     throw new Error('User must be logged in to access BookMemoScreen');
   }
-  const currentUserId = user.id;
-
-  // Derived state
-  const libraryEntry = bookId ? library?.[bookId] ?? null : null;
-  const selectedBook = libraryEntry?.book ?? null;
-  const selectedBookId = selectedBook?.id ?? bookId ?? null;
-  const savedMemos: UserMemo[] = Array.isArray(libraryEntry?.memos)
-    ? (libraryEntry.memos as UserMemo[])
-    : [];
-
-  const sharedMemos = useMemo(() => {
-    if (!selectedBookId) {
-      return [];
-    }
-
-    const entries = Array.isArray(publicMemoStore[selectedBookId])
-      ? publicMemoStore[selectedBookId]
-      : [];
-
-    return entries.filter(
-      (entry) => (entry?.author?.id ?? null) !== currentUserId,
-    );
-  }, [publicMemoStore, selectedBookId, currentUserId]);
-
-  const canViewSharedMemos = savedMemos.length > 0 && sharedMemos.length > 0;
+  // Redux state via selectors
+  const selectedBook = useSelector(selectSelectedBook(bookId));
+  const selectedBookId = useSelector(selectSelectedBookId(bookId));
+  const savedMemos: UserMemo[] = useSelector(selectSavedMemos(bookId)) as UserMemo[];
 
   // Effects
   // Reset form state when book changes
@@ -67,12 +41,6 @@ export function useBookMemoScreen() {
     setStatus('idle');
     setSharePublic(false);
   }, [selectedBook?.id]);
-
-  useEffect(() => {
-    if (selectedBook) {
-      dispatch(addBookToLibrary(selectedBook));
-    }
-  }, [selectedBook, dispatch]);
 
   // Event handlers
   const handleMemoChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -135,8 +103,6 @@ export function useBookMemoScreen() {
   return {
     selectedBook,
     savedMemos,
-    sharedMemos,
-    canViewSharedMemos,
     draftMemo,
     status,
     handleMemoChange,

@@ -13,6 +13,7 @@ import {
   LogoLink,
   SearchFormWrapper,
 } from './styles';
+import { Box } from '@mui/material';
 
 interface HeaderProps {
   isAuthenticated: boolean;
@@ -60,10 +61,12 @@ function Header({ isAuthenticated, user, onLogout }: HeaderProps) {
                 </>
               ) : (
                 <>
-                    <Button component={Link} to="/register">
+                    <Button component={Link} to="/register" >
                       {t('header.createAccount')}
                     </Button>
-                  <LanguageSwitcher />
+                    <Box display="flex" justifyContent="center">
+                      <LanguageSwitcher />
+                    </Box>
                 </>
               )}
             </Stack>
