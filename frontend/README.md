@@ -1,21 +1,70 @@
-# Tech Interview Project
+# Tech Interview Project 
 
-## Steps to get started:
+## solution - Book Memo
+A memo is the bit and piece you remember about a given book.
 
-#### Fork the repository and clone it locally
-- https://github.com/Tekmetric/interview.git
+### Functional requirements
+- Search for a book 
+- list should show the search result (list)
+- Add a memo to a book
+- View a list of books that have your memo (grid/table)
 
-#### Let's install the project locally
-`npm install`
+### Non-Functional requirements
+- Intl support (DONE)
+- Caching search queries (DONE)
+- The web application should be responsive, look well on desktop and mobile (DONE)
+- Lazy loading components that are rarely used
+- Offline/PWA/Service Worker, allow a user to write a memo, even if they do not have internet
+- Skeleton loading - useful when searching for books
 
-#### Let's start the project locally
-`npm start`
+### Enhancements
+- Allow users to share their memos with other users
 
-### Goals
-1. Fetch Data from the backend Crud API you created or from a public API
-2. Display data from API onto your page (Table, List, etc.)
-3. Apply a styling solution of your choice to make your page look different (CSS, SASS, CSS-in-JS)
-4. Have fun
 
-### Submitting your coding exercise
-Once you have finished the coding exercise please create a PR into Tekmetric/interview
+### Tech stack
+- Reactjs
+- Vite
+- `@mui/material`, `@emotion/react` for stylng with css-in-js
+- yarn for package management
+- Express.js development server stores library data in JSON files (enables testing latency/failure scenarios)
+
+### Local backend server
+- Run `yarn server` to start the Express API (`http://localhost:3001`)
+- Set `VITE_LIBRARY_API_BASE_URL` to point the frontend at a different base URL if needed
+- Configure `SIMULATED_LATENCY_MS` and `SIMULATED_FAILURE_RATE` environment variables to introduce artificial delays or flaky responses
+- Auth routes under `/api/auth` persist registered users and the active session
+- Public memo routes under `/api/public-memos` store and serve shared memos
+
+### Folder structure 
+Goal is to make sure each file has at most 100 lines (to help future developer understand the code)
+
+```sh
+screens/
+  ├── {screen-1}/
+  │   ├── index.tsx       (main component)
+  │   ├── hooks.ts        (custom hooks for state & logic)
+  │   ├── styles.ts       (styled components)
+  │   └── components/     (sub-components)
+  └── {screen-2}/
+      ├── index.tsx       (main component)
+      ├── hooks.ts        (custom hooks for state & logic)
+      ├── styles.ts       (styled components)
+      └── components/     (sub-components)
+
+components/
+  ├── {complex-component}/
+  │   ├── index.tsx       (main component)
+  │   ├── hooks.ts        (custom hooks for business logic)
+  │   ├── styles.ts       (styled components)
+  │   └── {helper}.tsx    (sub-component)
+  ├── {base-component}.tsx
+  └── {simple-component}/
+      ├── index.tsx
+      └── styles.ts
+```
+
+#### Architecture Guidelines
+- Keep main component files under 100 lines
+- Extract business logic and state management into custom hooks (hooks.ts)
+- Keep styled components in separate styles.ts files
+- Sub-components can be extracted into separate files when needed
